@@ -4,6 +4,7 @@ import { Shell } from './components/Shell';
 import { useSession } from './lib/session';
 import { Alerts } from './screens/Alerts';
 import { Boarding } from './screens/Boarding';
+import { Buses } from './screens/Buses';
 import { Children } from './screens/Children';
 import { Home } from './screens/Home';
 import { Live } from './screens/Live';
@@ -48,6 +49,7 @@ export default function App(): React.ReactElement {
               <Route path="/messages" element={<Messages />} />
               <Route path="/children" element={<Children />} />
               <Route path="/routes" element={<RoutesScreen />} />
+              <Route path="/buses" element={<Buses />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/staff" element={<Staff />} />
               <Route path="/settings" element={<Settings />} />

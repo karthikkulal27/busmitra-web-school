@@ -132,6 +132,8 @@ export function Settings(): React.ReactElement {
           </div>
         </Card>
 
+        <Holidays />
+
         <Card title="Numbers a driver can call">
           <div className="grid gap-3 p-4 sm:grid-cols-2">
             <Field label="School office">
@@ -277,5 +279,134 @@ function Locked({ label, value }: { label: string; value: string }): React.React
         {value}
       </span>
     </div>
+  );
+}
+
+
+/**
+ * SA-12 — days no bus is expected.
+ *
+ * Not housekeeping. The late-start sweep runs every five minutes and, without
+ * this list, files one alert per route on Dasara. An alert engine that is
+ * predictably wrong on days everybody knew about teaches the office to dismiss
+ * the whole category — and then the Tuesday a bus genuinely never leaves goes
+ * unread.
+ */
+function Holidays(): React.ReactElement {
+  const queryClient = useQueryClient();
+  const [date, setDate] = useState('');
+  const [name, setName] = useState('');
+  const [running, setRunning] = useState(false);
+
+  const { data } = useQuery({ queryKey: ['holidays'], queryFn: () => api.holidays() });
+  const holidays = data?.holidays ?? [];
+
+  const refresh = () => void queryClient.invalidateQueries({ queryKey: ['holidays'] });
+  const add = useMutation({
+    mutationFn: () => api.addHoliday({ onDate: date, name: name.trim(), busesRunning: running }),
+    onSuccess: () => {
+      setDate('');
+      setName('');
+      setRunning(false);
+      refresh();
+    },
+  });
+  const remove = useMutation({
+    mutationFn: (id: string) => api.removeHoliday(id),
+    onSuccess: refresh,
+  });
+
+  const upcoming = holidays.filter((h) => !h.past);
+
+  return (
+    <Card title="Holidays" hint={`${upcoming.length} still to come`}>
+      <div className="p-4">
+        <form
+          className="mb-4 flex flex-wrap items-end gap-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (date && name.trim().length >= 2) add.mutate();
+          }}
+        >
+          <label className="block">
+            <span className="mb-1.5 block font-head text-[10px] font-bold tracking-[0.13em] text-slate uppercase">
+              Date
+            </span>
+            <input
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              className="rounded-[9px] border border-line px-3 py-2 font-mono text-[14px]"
+            />
+          </label>
+          <label className="block min-w-[12rem] flex-1">
+            <span className="mb-1.5 block font-head text-[10px] font-bold tracking-[0.13em] text-slate uppercase">
+              What is it
+            </span>
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Dasara"
+              className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+            />
+          </label>
+          <label className="flex items-center gap-2 pb-2.5 text-[13px]">
+            <input
+              type="checkbox"
+              checked={running}
+              onChange={(e) => setRunning(e.target.checked)}
+            />
+            Buses still run
+          </label>
+          <button
+            type="submit"
+            disabled={!date || name.trim().length < 2 || add.isPending}
+            className="rounded-[9px] bg-ink px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-60"
+          >
+            {add.isPending ? 'Adding…' : 'Add'}
+          </button>
+        </form>
+
+        {holidays.length === 0 ? (
+          <p className="text-[12.5px] text-slate">
+            None yet. Add the school calendar before term starts — every route will be
+            reported late on a holiday that is not listed here.
+          </p>
+        ) : (
+          holidays.slice(0, 20).map((h) => (
+            <div
+              key={h.id}
+              className={`flex items-center gap-3 border-b border-line py-2 text-[13px] last:border-0 ${
+                h.past ? 'opacity-55' : ''
+              }`}
+            >
+              <span className="w-28 font-mono text-[12.5px]">{h.label}</span>
+              <span className="font-semibold">{h.name}</span>
+              {h.buses_running ? (
+                <span className="rounded-full bg-[#FFF2D6] px-2 py-0.5 text-[11px] font-bold text-[#8A5B00]">
+                  Buses run
+                </span>
+              ) : (
+                <span className="rounded-full bg-paper px-2 py-0.5 text-[11px] font-bold text-slate">
+                  Closed
+                </span>
+              )}
+              <button
+                onClick={() => remove.mutate(h.id)}
+                className="ml-auto text-[12.5px] font-semibold text-slate hover:text-alert"
+              >
+                Remove
+              </button>
+            </div>
+          ))
+        )}
+
+        <p className="pt-3 text-[11.5px] leading-relaxed text-slate">
+          Tick &ldquo;buses still run&rdquo; for an exam or half day. The late-start alert
+          is suppressed either way; the difference is that reports can still tell a closed
+          day from one that ran off timetable.
+        </p>
+      </div>
+    </Card>
   );
 }

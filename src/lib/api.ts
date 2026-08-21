@@ -4,6 +4,8 @@ import type {
   Alert,
   ChildRow,
   EditorRoute,
+  FleetBus,
+  HolidayRow,
   EditorStop,
   ImportPreview,
   PrincipalView,
@@ -128,6 +130,32 @@ export const api = {
     ),
 
   setupRoutes: () => request<{ routes: EditorRoute[] }>('/setup/routes'),
+
+  // SA-08 — the fleet list. Distinct from `buses` above, which is the live map's
+  // view of what is moving right now; this one is the vehicle records.
+  fleet: () => request<{ buses: FleetBus[] }>('/setup/buses'),
+
+  /** SA-05 — which bus runs this route. Half of what the driver app's duty needs. */
+  updateRoute: (id: string, input: Record<string, unknown>) =>
+    request<{ ok: boolean }>(`/setup/routes/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+  createBus: (input: Record<string, unknown>) =>
+    request<{ busId: string }>('/setup/buses', { method: 'POST', body: JSON.stringify(input) }),
+  updateBus: (id: string, input: Record<string, unknown>) =>
+    request<{ ok: boolean }>(`/setup/buses/${id}`, { method: 'PATCH', body: JSON.stringify(input) }),
+
+  // SA-07 — add or edit a person.
+  saveStaff: (input: Record<string, unknown>) =>
+    request<{ staffId: string }>('/admin/staff', { method: 'POST', body: JSON.stringify(input) }),
+
+  // SA-12 — days no bus is expected.
+  holidays: () => request<{ holidays: HolidayRow[] }>('/admin/holidays'),
+  addHoliday: (input: Record<string, unknown>) =>
+    request<{ ok: boolean }>('/admin/holidays', { method: 'POST', body: JSON.stringify(input) }),
+  removeHoliday: (id: string) =>
+    request<{ ok: boolean }>(`/admin/holidays/${id}`, { method: 'DELETE' }),
 
   saveStop: (routeId: string, stop: EditorStop) =>
     request<{ stopId: string }>(`/setup/routes/${routeId}/stops`, {

@@ -1,5 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, Empty, Kpi, Plate } from '../components/ui';
+import { useState } from 'react';
 import { api } from '../lib/api';
 
 /**
@@ -11,10 +12,21 @@ import { api } from '../lib/api';
  * that in a diary.
  */
 export function Staff(): React.ReactElement {
+  const queryClient = useQueryClient();
+  const [form, setForm] = useState(false);
   const { data, isLoading, error } = useQuery({
     queryKey: ['staff'],
     queryFn: () => api.staff(),
     refetchInterval: 60_000,
+  });
+
+  const save = useMutation({
+    mutationFn: (input: Record<string, unknown>) => api.saveStaff(input),
+    onSuccess: () => {
+      setForm(false);
+      void queryClient.invalidateQueries({ queryKey: ['staff'] });
+      void queryClient.invalidateQueries({ queryKey: ['fleet'] });
+    },
   });
 
   if (isLoading) return <Empty>Loading…</Empty>;
@@ -98,7 +110,26 @@ export function Staff(): React.ReactElement {
         </Card>
       ) : null}
 
-      <Card title="Staff">
+      {form ? (
+        <StaffForm
+          buses={data.buses ?? []}
+          busy={save.isPending}
+          onCancel={() => setForm(false)}
+          onSave={(input) => save.mutate(input)}
+        />
+      ) : null}
+
+      <Card
+        title="Staff"
+        action={
+          <button
+            onClick={() => setForm(true)}
+            className="rounded-[9px] bg-ink px-3 py-1.5 text-[12.5px] font-bold text-white"
+          >
+            Add someone
+          </button>
+        }
+      >
         {data.staff.length === 0 ? (
           <Empty>No staff yet.</Empty>
         ) : (
@@ -189,5 +220,156 @@ function Th({ children }: { children: React.ReactNode }): React.ReactElement {
     <th className="px-4 py-2.5 font-head text-[10px] font-bold tracking-[0.12em] text-slate uppercase">
       {children}
     </th>
+  );
+}
+
+
+/**
+ * Add or edit a person.
+ *
+ * The bus picker is the part that matters beyond record-keeping: together with a
+ * route's own bus, it is what GET /driver/duty reads, and therefore what decides
+ * whether a driver's app knows what it is driving. A driver with no bus here
+ * opens the app to a disabled Start button.
+ */
+function StaffForm({
+  buses,
+  busy,
+  onSave,
+  onCancel,
+}: {
+  buses: { id: string; plate: string }[];
+  busy: boolean;
+  onSave: (input: Record<string, unknown>) => void;
+  onCancel: () => void;
+}): React.ReactElement {
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState('driver');
+  const [busId, setBusId] = useState('');
+  const [licence, setLicence] = useState('');
+  const [police, setPolice] = useState('');
+
+  const drives = role === 'driver' || role === 'attendant';
+  const ok = name.trim().length >= 2 && phone.replace(/\D/g, '').length >= 10;
+
+  return (
+    <Card title="Add someone">
+      <form
+        className="grid gap-3 p-4 sm:grid-cols-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onSave({
+            name: name.trim(),
+            phone: phone.trim(),
+            role,
+            assignedBusId: drives && busId ? busId : null,
+            licenceExpiry: drives && licence ? licence : null,
+            policeVerifiedOn: drives && police ? police : null,
+          });
+        }}
+      >
+        <Field label="Name">
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+          />
+        </Field>
+        <Field label="Mobile number">
+          <input
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="98860 11004"
+            className="w-full rounded-[9px] border border-line px-3 py-2 font-mono text-[14px]"
+          />
+        </Field>
+        <Field label="Role">
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+          >
+            <option value="driver">Driver</option>
+            <option value="attendant">Attendant</option>
+            <option value="office">Office</option>
+            <option value="transport">Transport in-charge</option>
+            <option value="principal">Principal (read-only)</option>
+          </select>
+        </Field>
+
+        {drives ? (
+          <>
+            <Field label="Assigned bus">
+              <select
+                value={busId}
+                onChange={(e) => setBusId(e.target.value)}
+                className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+              >
+                <option value="">Not assigned yet</option>
+                {buses.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.plate}
+                  </option>
+                ))}
+              </select>
+            </Field>
+            <Field label="Licence expires">
+              <input
+                type="date"
+                value={licence}
+                onChange={(e) => setLicence(e.target.value)}
+                className="w-full rounded-[9px] border border-line px-3 py-2 font-mono text-[14px]"
+              />
+            </Field>
+            <Field label="Police verification done">
+              <input
+                type="date"
+                value={police}
+                onChange={(e) => setPolice(e.target.value)}
+                className="w-full rounded-[9px] border border-line px-3 py-2 font-mono text-[14px]"
+              />
+            </Field>
+          </>
+        ) : null}
+
+        <div className="flex items-center gap-3 sm:col-span-2">
+          <button
+            type="submit"
+            disabled={!ok || busy}
+            className="rounded-[9px] bg-ink px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-60"
+          >
+            {busy ? 'Saving…' : 'Save'}
+          </button>
+          <button
+            type="button"
+            onClick={onCancel}
+            className="text-[12.5px] font-semibold text-slate hover:text-ink"
+          >
+            Cancel
+          </button>
+          <span className="text-[12px] text-slate">
+            The mobile number is how they sign in. There is no password.
+          </span>
+        </div>
+      </form>
+    </Card>
+  );
+}
+
+function Field({
+  label,
+  children,
+}: {
+  label: string;
+  children: React.ReactNode;
+}): React.ReactElement {
+  return (
+    <label className="block">
+      <span className="mb-1.5 block font-head text-[10px] font-bold tracking-[0.13em] text-slate uppercase">
+        {label}
+      </span>
+      {children}
+    </label>
   );
 }

@@ -11,6 +11,7 @@ const NAV = [
   { to: '/messages', label: 'Messages', end: false },
   { to: '/children', label: 'Children', end: false },
   { to: '/routes', label: 'Routes & stops', end: false },
+  { to: '/buses', label: 'Buses', end: false },
   { to: '/reports', label: 'Reports', end: false },
   { to: '/staff', label: 'Drivers & staff', end: false },
   { to: '/settings', label: 'Settings', end: false },

@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react';
 import { RouteMap } from '../components/RouteMap';
 import { Card, Empty } from '../components/ui';
 import { api } from '../lib/api';
-import type { EditorStop } from '../lib/types';
+import type { EditorStop, EditorRoute } from '../lib/types';
 
 /**
  * SA-05 — routes and stops. Set-up work, done once in June.
@@ -116,6 +116,8 @@ export function RoutesScreen(): React.ReactElement {
           </button>
         ))}
       </div>
+
+      <RouteBus route={route} />
 
       <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)]">
         <Card title="Stop order" hint="Drag to reorder" bodyClass="max-h-[520px] overflow-auto">
@@ -282,5 +284,52 @@ function Field({
       </label>
       {children}
     </div>
+  );
+}
+
+
+/**
+ * Which bus runs this route.
+ *
+ * Small control, load-bearing consequence: this plus the driver's own assigned
+ * bus is the whole of GET /driver/duty. Leave it unset and the driver's app
+ * opens to a disabled Start button, because there is nothing to start.
+ */
+function RouteBus({ route }: { route: EditorRoute }): React.ReactElement {
+  const queryClient = useQueryClient();
+  const { data } = useQuery({ queryKey: ['fleet'], queryFn: () => api.fleet() });
+  const buses = (data?.buses ?? []).filter((b) => b.active);
+  const current = route.busId;
+
+  const save = useMutation({
+    mutationFn: (busId: string | null) => api.updateRoute(route.id, { busId }),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['setup-routes'] });
+      void queryClient.invalidateQueries({ queryKey: ['fleet'] });
+    },
+  });
+
+  return (
+    <Card title="Bus on this route">
+      <div className="flex flex-wrap items-center gap-3 p-4">
+        <select
+          value={current ?? ''}
+          onChange={(e) => save.mutate(e.target.value || null)}
+          className="rounded-[9px] border border-line px-3 py-2 text-[14px]"
+        >
+          <option value="">No bus assigned</option>
+          {buses.map((b) => (
+            <option key={b.id} value={b.id}>
+              {b.plate}
+            </option>
+          ))}
+        </select>
+        {save.isPending ? <span className="text-[12.5px] text-slate">Saving…</span> : null}
+        <p className="text-[12px] leading-relaxed text-slate">
+          The driver's app reads this. Without a bus here, whoever is assigned to drive
+          {' '}{route.name} opens the app to a disabled Start button.
+        </p>
+      </div>
+    </Card>
   );
 }

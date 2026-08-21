@@ -206,6 +206,8 @@ export interface EditorRoute {
   id: string;
   name: string;
   shift: string;
+  /** The bus that runs it. Null until the school picks one on SA-05. */
+  busId: string | null;
   stops: EditorStop[];
 }
 
@@ -322,4 +324,30 @@ export interface RequestsView {
   leave: LeaveRow[];
   stopChanges: StopChangeRow[];
   pending: number;
+}
+
+/** SA-08. Named for the fleet list; BusRow is the live map's row. */
+export interface FleetBus {
+  id: string;
+  plate: string;
+  seats: number;
+  model: string | null;
+  active: boolean;
+  fitness_expiry: string | null;
+  fitness_label: string | null;
+  fitness_lapsed: boolean;
+  fitness_soon: boolean;
+  routes: number;
+  driver_name: string | null;
+  on_trip: boolean;
+}
+
+/** SA-12. */
+export interface HolidayRow {
+  id: string;
+  on_date: string;
+  label: string;
+  name: string;
+  buses_running: boolean;
+  past: boolean;
 }
