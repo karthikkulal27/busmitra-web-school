@@ -1,0 +1,177 @@
+import { config } from '../config';
+import { useSession, tokenOf } from './session';
+import type {
+  Alert,
+  ChildRow,
+  EditorRoute,
+  EditorStop,
+  ImportPreview,
+  PrincipalView,
+  ReportSummary,
+  RequestsView,
+  SettingsView,
+  StaffView,
+  BoardingLog,
+  BusView,
+  Overview,
+  RouteOption,
+  SentMessage,
+  Session,
+  TripDetail,
+  Track,
+} from './types';
+
+export class ApiError extends Error {
+  constructor(
+    readonly status: number,
+    readonly code: string,
+  ) {
+    super(`${status} ${code}`);
+  }
+}
+
+async function request<T>(path: string, init?: RequestInit): Promise<T> {
+  const token = tokenOf();
+  const res = await fetch(`${config.apiUrl}${path}`, {
+    ...init,
+    headers: {
+      'content-type': 'application/json',
+      ...(token ? { authorization: `Bearer ${token}` } : {}),
+      ...(init?.headers ?? {}),
+    },
+  });
+
+  if (res.status === 401) {
+    // The token expired or the school revoked this person. Drop straight to
+    // SA-01 rather than showing an empty console that looks broken.
+    useSession.getState().signOut();
+    throw new ApiError(401, 'unauthorised');
+  }
+
+  const body = res.status === 204 ? {} : await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new ApiError(res.status, (body as { error?: string }).error ?? 'request_failed');
+  }
+  return body as T;
+}
+
+export const api = {
+  requestOtp: (schoolCode: string, phone: string) =>
+    request<{ sent: boolean }>('/auth/console/otp/request', {
+      method: 'POST',
+      body: JSON.stringify({ schoolCode, phone }),
+    }),
+
+  verifyOtp: (schoolCode: string, phone: string, code: string) =>
+    request<Session>('/auth/console/otp/verify', {
+      method: 'POST',
+      body: JSON.stringify({ schoolCode, phone, code }),
+    }),
+
+  overview: (date?: string) =>
+    request<Overview>(`/console/overview${date ? `?date=${date}` : ''}`),
+
+  buses: () => request<{ buses: BusView[] }>('/console/buses'),
+
+  trip: (tripId: string) => request<TripDetail>(`/console/trips/${tripId}`),
+
+  track: (tripId: string) => request<Track>(`/console/trips/${tripId}/track`),
+
+  boardings: (date?: string) =>
+    request<BoardingLog>(`/console/boardings${date ? `?date=${date}` : ''}`),
+
+  tripBoardings: (tripId: string) =>
+    request<{ tripId: string; events: BoardingLog['events'] }>(
+      `/console/trips/${tripId}/boardings`,
+    ),
+
+  alerts: (days = 7) => request<{ days: number; alerts: Alert[] }>(`/console/alerts?days=${days}`),
+
+  handleAlert: (id: string) =>
+    request<{ id: string; handledAt: string }>(`/console/alerts/${id}/handle`, {
+      method: 'POST',
+    }),
+
+  routes: () => request<{ routes: RouteOption[] }>('/console/routes'),
+
+  messages: () => request<{ messages: SentMessage[] }>('/console/messages'),
+
+  sendMessage: (input: { routeIds: string[]; wholeSchool: boolean; body: string }) =>
+    request<{ messageId: string; recipients: number; sent: number; failed: number }>(
+      '/console/messages',
+      { method: 'POST', body: JSON.stringify(input) },
+    ),
+
+  children: () =>
+    request<{
+      children: ChildRow[];
+      counts: { total: number; noParentPhone: number; noStop: number };
+    }>('/setup/children'),
+
+  /** multipart, so it bypasses the JSON request helper's content-type. */
+  importPreview: async (file: File) => {
+    const form = new FormData();
+    form.append('file', file);
+    const res = await fetch(`${config.apiUrl}/setup/children/import/preview`, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${tokenOf() ?? ''}` },
+      body: form,
+    });
+    if (!res.ok) throw new ApiError(res.status, 'import_failed');
+    return (await res.json()) as ImportPreview;
+  },
+
+  importCommit: (children: unknown[]) =>
+    request<{ created: number; updated: number; skipped: number; parentsLinked: number }>(
+      '/setup/children/import/commit',
+      { method: 'POST', body: JSON.stringify({ children }) },
+    ),
+
+  setupRoutes: () => request<{ routes: EditorRoute[] }>('/setup/routes'),
+
+  saveStop: (routeId: string, stop: EditorStop) =>
+    request<{ stopId: string }>(`/setup/routes/${routeId}/stops`, {
+      method: 'POST',
+      body: JSON.stringify({
+        ...(stop.id ? { id: stop.id } : {}),
+        name: stop.name,
+        lat: stop.lat,
+        lng: stop.lng,
+        geofenceM: stop.geofenceM,
+        waitSeconds: stop.waitSeconds,
+        scheduledTime: stop.scheduledTime,
+      }),
+    }),
+
+  reorderStops: (routeId: string, stopIds: string[]) =>
+    request<{ ok: boolean }>(`/setup/routes/${routeId}/stops/order`, {
+      method: 'PUT',
+      body: JSON.stringify({ stopIds }),
+    }),
+
+  deleteStop: (routeId: string, stopId: string) =>
+    request<{ ok: boolean }>(`/setup/routes/${routeId}/stops/${stopId}`, { method: 'DELETE' }),
+
+  reports: (from: string, to: string) =>
+    request<ReportSummary>(`/reports/summary?from=${from}&to=${to}`),
+
+  principal: () => request<PrincipalView>('/reports/principal'),
+
+  staff: () => request<StaffView>('/admin/staff'),
+
+  settings: () => request<SettingsView>('/admin/settings'),
+
+  requests: () => request<RequestsView>('/console/requests'),
+
+  decideStopChange: (id: string, status: 'approved' | 'rejected') =>
+    request<{ id: string; status: string }>(`/console/stop-changes/${id}/decide`, {
+      method: 'POST',
+      body: JSON.stringify({ status }),
+    }),
+
+  saveSettings: (input: Record<string, unknown>) =>
+    request<{ ok: boolean }>('/admin/settings', {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+};

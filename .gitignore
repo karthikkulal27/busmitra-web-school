@@ -1,0 +1,18 @@
+# --- secrets ---------------------------------------------------------------
+# .env holds VITE_* values that are baked into the bundle and are therefore not
+# secret — but it also holds whichever API URL this checkout points at, and one
+# developer's staging URL is not another's. .env.example is the committed one.
+.env
+.env.local
+*.env.local
+
+# --- build -----------------------------------------------------------------
+node_modules/
+dist/
+*.tsbuildinfo
+
+# --- editors / os ----------------------------------------------------------
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db

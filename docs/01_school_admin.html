@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BusMitra — School Admin &amp; Principal (13 screens)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Narrow:wght@500;600;700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#16202E; --ink2:#243347; --slate:#63748C; --line:#DCE2EA;
+  --paper:#EFF1F5; --card:#FFFFFF;
+  --bus:#FFC53D; --live:#1E9E6A; --alert:#D8442F; --info:#2D6BE4;
+  --r:12px;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--paper);color:var(--ink);font-family:"Public Sans",system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+.chequer{height:6px;background:repeating-linear-gradient(90deg,var(--bus) 0 12px,var(--ink) 12px 24px)}
+
+/* ---------- page ---------- */
+.page{max-width:1280px;margin:0 auto;padding:0 24px 100px}
+.masthead{padding:56px 0 28px}
+.eyebrow{font-family:"Archivo Narrow",sans-serif;text-transform:uppercase;letter-spacing:.18em;font-size:12px;font-weight:700;color:var(--slate)}
+.masthead h1{font-family:"Archivo Narrow",sans-serif;font-size:52px;line-height:1.02;margin:10px 0 12px;font-weight:700;letter-spacing:-.01em}
+.masthead p{max-width:60ch;color:var(--ink2);font-size:16px;line-height:1.55;margin:0}
+.legend{display:flex;gap:26px;flex-wrap:wrap;margin-top:22px;font-size:13px;color:var(--slate)}
+.legend b{font-family:"IBM Plex Mono",monospace;color:var(--ink);font-weight:600}
+
+.shot{margin:52px 0 0}
+.shot-head{display:flex;align-items:baseline;gap:14px;margin-bottom:12px;border-bottom:1px solid var(--line);padding-bottom:10px}
+.ref{font-family:"IBM Plex Mono",monospace;font-size:12px;font-weight:600;background:var(--ink);color:var(--bus);padding:3px 7px;border-radius:5px}
+.shot-head h2{font-family:"Archivo Narrow",sans-serif;font-size:24px;margin:0;font-weight:700}
+.shot-head span{color:var(--slate);font-size:13.5px;margin-left:auto;text-align:right;max-width:46ch}
+
+.frame{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--card);box-shadow:0 18px 40px -28px rgba(22,32,46,.5)}
+.bar{background:#E3E7ED;padding:9px 14px;display:flex;align-items:center;gap:7px;border-bottom:1px solid var(--line)}
+.dot{width:10px;height:10px;border-radius:50%;background:#C3CBD6}
+.url{margin-left:12px;background:#fff;border-radius:6px;padding:3px 12px;font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--slate)}
+
+/* ---------- app shell ---------- */
+.app{display:grid;grid-template-columns:212px 1fr;min-height:640px}
+.side{background:var(--ink);color:#fff;padding:0 0 18px}
+.side .chequer{margin-bottom:16px}
+.brand{padding:0 16px 16px;display:flex;align-items:center;gap:9px}
+.mark{width:26px;height:26px;border-radius:7px;background:var(--bus);display:grid;place-items:center;font-family:"Archivo Narrow",sans-serif;font-weight:700;color:var(--ink);font-size:15px}
+.brand b{font-family:"Archivo Narrow",sans-serif;font-size:17px;letter-spacing:.01em}
+.brand small{display:block;font-size:10px;color:#8496AC;letter-spacing:.1em;text-transform:uppercase;font-family:"Archivo Narrow",sans-serif}
+.nav{padding:0 10px}
+.nav .grp{font-family:"Archivo Narrow",sans-serif;text-transform:uppercase;letter-spacing:.14em;font-size:10px;color:#6C7D95;padding:14px 8px 6px}
+.nav a{display:flex;align-items:center;gap:9px;padding:7.5px 9px;border-radius:8px;color:#C3CEDC;text-decoration:none;font-size:13.5px;margin-bottom:1px}
+.nav a.on{background:#2B3B50;color:#fff;font-weight:600;box-shadow:inset 2px 0 0 var(--bus)}
+.nav a i{width:15px;height:15px;border-radius:4px;background:#3B4C63;display:block;flex:none}
+.nav a.on i{background:var(--bus)}
+.nav .badge{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:10.5px;background:var(--alert);color:#fff;border-radius:20px;padding:1px 6px}
+
+.main{background:var(--paper);display:flex;flex-direction:column;min-width:0}
+.top{background:#fff;border-bottom:1px solid var(--line);padding:13px 22px;display:flex;align-items:center;gap:14px}
+.top h3{font-family:"Archivo Narrow",sans-serif;font-size:19px;margin:0;font-weight:700}
+.top .sub{font-size:12px;color:var(--slate)}
+.spacer{margin-left:auto}
+.clock{font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink2);font-weight:500}
+.who{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.av{width:28px;height:28px;border-radius:50%;background:var(--ink2);color:#fff;display:grid;place-items:center;font-size:11px;font-weight:600}
+.pad{padding:20px 22px;display:flex;flex-direction:column;gap:16px}
+
+/* ---------- bits ---------- */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.ch{display:flex;align-items:center;gap:10px;padding:12px 15px;border-bottom:1px solid var(--line)}
+.ch h4{font-family:"Archivo Narrow",sans-serif;font-size:15.5px;margin:0;font-weight:700;letter-spacing:.01em}
+.ch .hint{font-size:11.5px;color:var(--slate)}
+.cb{padding:15px}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.g23{display:grid;grid-template-columns:1.55fr 1fr;gap:16px}
+.g32{display:grid;grid-template-columns:1fr 1.7fr;gap:16px}
+
+.kpi{background:#fff;border:1px solid var(--line);border-radius:var(--r);padding:13px 14px}
+.kpi .k{font-family:"Archivo Narrow",sans-serif;text-transform:uppercase;letter-spacing:.12em;font-size:10.5px;color:var(--slate);font-weight:600}
+.kpi .v{font-family:"Archivo Narrow",sans-serif;font-size:34px;font-weight:700;line-height:1.1;margin-top:3px}
+.kpi .v small{font-size:15px;color:var(--slate);font-weight:600}
+.kpi .d{font-size:11.5px;color:var(--slate);margin-top:2px}
+.kpi.hot{background:var(--ink);border-color:var(--ink)}
+.kpi.hot .k{color:#8FA0B6}.kpi.hot .v{color:var(--bus)}.kpi.hot .d{color:#A9B8CA}
+
+.pill{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:600;padding:3px 9px;border-radius:20px;background:#EDF0F4;color:var(--ink2);white-space:nowrap}
+.pill.live{background:#E1F4EC;color:#0F7A50}
+.pill.warn{background:#FFF2D6;color:#8A5B00}
+.pill.bad{background:#FBE4E1;color:#A62A1B}
+.pill.mut{background:#EDF0F4;color:var(--slate)}
+.pill b{width:6px;height:6px;border-radius:50%;background:currentColor;display:block}
+
+.btn{font-family:"Public Sans",sans-serif;font-size:13px;font-weight:600;border:1px solid var(--line);background:#fff;color:var(--ink);padding:8px 13px;border-radius:9px;cursor:pointer}
+.btn.pri{background:var(--ink);color:#fff;border-color:var(--ink)}
+.btn.acc{background:var(--bus);color:var(--ink);border-color:var(--bus)}
+.btn.dgr{background:var(--alert);color:#fff;border-color:var(--alert)}
+.btn.sm{padding:5px 10px;font-size:12px}
+
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th{font-family:"Archivo Narrow",sans-serif;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;color:var(--slate);text-align:left;padding:9px 15px;border-bottom:1px solid var(--line);font-weight:700;background:#F7F9FB}
+.tbl td{padding:10px 15px;border-bottom:1px solid #EDF1F5;vertical-align:middle}
+.tbl tr:last-child td{border-bottom:0}
+.mono{font-family:"IBM Plex Mono",monospace;font-size:12.5px}
+.mut{color:var(--slate)}
+.plate{font-family:"IBM Plex Mono",monospace;font-size:11.5px;font-weight:600;background:var(--bus);border:1px solid #E0A800;border-radius:4px;padding:2px 6px;color:var(--ink);white-space:nowrap}
+.nm{font-weight:600}
+.sub2{font-size:11.5px;color:var(--slate)}
+
+/* route rail — the signature element */
+.rail{list-style:none;margin:0;padding:4px 0 4px 0}
+.rail li{position:relative;padding:0 0 16px 26px;font-size:13px}
+.rail li:before{content:"";position:absolute;left:5px;top:4px;width:9px;height:9px;border-radius:50%;background:#fff;border:2px solid #C3CCD8}
+.rail li:after{content:"";position:absolute;left:9px;top:15px;bottom:-2px;width:2px;background:#DDE3EA}
+.rail li:last-child{padding-bottom:0}
+.rail li:last-child:after{display:none}
+.rail li.done:before{background:var(--live);border-color:var(--live)}
+.rail li.done:after{background:var(--live)}
+.rail li.now:before{background:var(--bus);border-color:var(--ink);width:13px;height:13px;left:3px;top:2px;box-shadow:0 0 0 4px rgba(255,197,61,.28)}
+.rail .t{display:flex;gap:8px;align-items:baseline}
+.rail .t b{font-weight:600}
+.rail .t .tm{font-family:"IBM Plex Mono",monospace;font-size:11.5px;color:var(--slate);margin-left:auto}
+.rail .m{font-size:11.5px;color:var(--slate)}
+.rail li.now .t b{color:var(--ink)}
+
+.map{position:relative;background:#E6EAF0;height:100%;min-height:260px}
+.map svg{display:block;width:100%;height:100%}
+.maptools{position:absolute;left:12px;top:12px;display:flex;gap:6px}
+.maptools .mt{background:#fff;border:1px solid var(--line);border-radius:8px;padding:5px 10px;font-size:11.5px;font-weight:600;box-shadow:0 2px 6px rgba(0,0,0,.07)}
+.maplegend{position:absolute;right:12px;bottom:12px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:11px;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+.maplegend div{display:flex;align-items:center;gap:6px;margin-bottom:4px}
+.maplegend div:last-child{margin:0}
+.sw{width:9px;height:9px;border-radius:3px;display:block}
+
+.field{margin-bottom:13px}
+.lbl{display:block;font-family:"Archivo Narrow",sans-serif;text-transform:uppercase;letter-spacing:.1em;font-size:10.5px;font-weight:700;color:var(--slate);margin-bottom:5px}
+.inp{width:100%;border:1px solid var(--line);border-radius:9px;padding:9px 11px;font-size:13.5px;background:#fff;color:var(--ink);font-family:inherit}
+.inp.ph{color:#9AA6B5}
+.row{display:flex;gap:10px;align-items:center}
+.note{font-size:12.5px;color:var(--slate);margin:10px 2px 0;line-height:1.5}
+.note b{color:var(--ink2)}
+.alertrow{display:flex;gap:11px;padding:11px 15px;border-bottom:1px solid #EDF1F5;align-items:flex-start}
+.alertrow:last-child{border-bottom:0}
+.ai{width:26px;height:26px;border-radius:8px;flex:none;display:grid;place-items:center;font-size:12px;font-weight:700;font-family:"IBM Plex Mono",monospace}
+.ai.r{background:#FBE4E1;color:var(--alert)}.ai.y{background:#FFF2D6;color:#8A5B00}.ai.g{background:#E1F4EC;color:#0F7A50}.ai.b{background:#E3ECFD;color:var(--info)}
+.al-t{font-size:13px;font-weight:600}
+.al-s{font-size:11.5px;color:var(--slate);margin-top:1px}
+.al-x{margin-left:auto;font-family:"IBM Plex Mono",monospace;font-size:11px;color:var(--slate);white-space:nowrap}
+.bars{display:flex;align-items:flex-end;gap:7px;height:120px;padding-top:6px}
+.bars .b{flex:1;background:#DDE4EC;border-radius:5px 5px 0 0;position:relative}
+.bars .b.on{background:var(--ink)}
+.bars .b span{position:absolute;bottom:-19px;left:0;right:0;text-align:center;font-size:10.5px;color:var(--slate);font-family:"IBM Plex Mono",monospace}
+.stat-line{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:13px}
+.stat-line:last-child{border:0}
+.stat-line b{font-family:"IBM Plex Mono",monospace}
+.tabs{display:flex;gap:4px;padding:0 15px;border-bottom:1px solid var(--line);background:#fff}
+.tabs a{padding:10px 12px;font-size:13px;color:var(--slate);text-decoration:none;font-weight:600;border-bottom:2px solid transparent}
+.tabs a.on{color:var(--ink);border-bottom-color:var(--bus)}
+.seat{display:grid;grid-template-columns:repeat(6,1fr);gap:7px}
+.seat div{aspect-ratio:1;border-radius:8px;background:#EDF1F5;border:1px solid var(--line);display:grid;place-items:center;font-size:10.5px;font-family:"IBM Plex Mono",monospace;color:var(--slate)}
+.seat div.in{background:#E1F4EC;border-color:#9ED9BF;color:#0F7A50;font-weight:600}
+.seat div.ab{background:#FBE4E1;border-color:#EDB6AE;color:var(--alert)}
+
+/* login */
+.login{display:grid;grid-template-columns:1fr 1fr;min-height:560px}
+.login .art{background:var(--ink);color:#fff;padding:44px 40px;display:flex;flex-direction:column;justify-content:space-between}
+.login .art h2{font-family:"Archivo Narrow",sans-serif;font-size:40px;line-height:1.05;margin:26px 0 12px;font-weight:700}
+.login .art p{color:#A9B8CA;font-size:14.5px;line-height:1.6;max-width:34ch;margin:0}
+.login .form{padding:44px 46px;display:flex;flex-direction:column;justify-content:center}
+.login .form h3{font-family:"Archivo Narrow",sans-serif;font-size:26px;margin:0 0 4px}
+.otp{display:flex;gap:9px}
+.otp i{width:44px;height:52px;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;font-family:"IBM Plex Mono",monospace;font-size:20px;font-style:normal;font-weight:600}
+.otp i.f{border-color:var(--ink);box-shadow:0 0 0 3px rgba(22,32,46,.08)}
+@media(max-width:900px){.app{grid-template-columns:1fr}.side{display:none}.g2,.g3,.g4,.g23,.g32,.login{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="chequer"></div>
+<div class="page">
+
+<header class="masthead">
+  <div class="eyebrow">Prototype 1 of 3 · Web app</div>
+  <h1>BusMitra — School office &amp; principal</h1>
+  <p>The surface the school actually pays for. Built for a non-technical office clerk on a Windows PC at 7:00 AM, with a separate glance-only view for the principal. Every screen below is a real screen to build — reference codes map 1:1 to routes in the React app.</p>
+  <div class="legend">
+    <span>Ink <b>#16202E</b></span><span>Bus yellow <b>#FFC53D</b></span><span>Running <b>#1E9E6A</b></span><span>Alert <b>#D8442F</b></span><span>Paper <b>#EFF1F5</b></span>
+  </div>
+</header>
+
+<!-- SA-01 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-01</span><h2>Sign in</h2><span>School code + phone OTP. No passwords — the office shares one PC.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/login</div></div>
+    <div class="login">
+      <div class="art">
+        <div class="brand" style="padding:0"><div class="mark">B</div><div><b style="color:#fff">BusMitra</b><small>School console</small></div></div>
+        <div>
+          <h2>Every bus,<br>every stop,<br>every morning.</h2>
+          <p>Live location, boarding roll call and parent alerts for your school fleet.</p>
+        </div>
+        <div class="mono" style="font-size:11.5px;color:#6C7D95">Support · +91 824 000 0000 · Mon–Sat 6 AM–7 PM</div>
+      </div>
+      <div class="form">
+        <h3>Sign in</h3>
+        <p class="mut" style="font-size:13.5px;margin:0 0 22px">Use the school code printed on your welcome letter.</p>
+        <div class="field"><label class="lbl">School code</label><div class="inp mono">SVK-MNG-014</div></div>
+        <div class="field"><label class="lbl">Mobile number</label><div class="inp mono">+91 98450 ·· ···</div></div>
+        <div class="field"><label class="lbl">6-digit code sent by SMS</label>
+          <div class="otp"><i>4</i><i>1</i><i>9</i><i class="f">|</i><i></i><i></i></div>
+        </div>
+        <button class="btn pri" style="width:100%;padding:11px;margin-top:6px">Sign in</button>
+        <p class="note">Didn't get the code? <b>Resend in 0:24</b> · Signing in as office staff. Principal accounts open a read-only view.</p>
+      </div>
+    </div>
+  </div>
+  <p class="note">Build note: one login, three roles — <b>office</b> (full), <b>principal</b> (read + reports), <b>transport in-charge</b> (routes + drivers, no billing).</p>
+</section>
+
+<!-- SA-02 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-02</span><h2>Morning control room — home</h2><span>Answers one question in two seconds: is anything wrong right now?</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/</div></div>
+    <div class="app"><div class="side" data-nav="home"></div>
+      <div class="main">
+        <div class="top"><h3>Morning run</h3><div class="sub">Sharada Vidyalaya, Kodialbail</div><div class="spacer"></div><span class="pill live"><b></b>6 buses running</span><div class="clock">Fri 14 Aug · 7:42 AM</div><div class="who"><div class="av">SL</div>Sunitha L.</div></div>
+        <div class="pad">
+          <div class="g4">
+            <div class="kpi hot"><div class="k">Running now</div><div class="v">6 <small>/ 8</small></div><div class="d">2 yet to start · Route 5, 7</div></div>
+            <div class="kpi"><div class="k">Children picked up</div><div class="v">211 <small>/ 268</small></div><div class="d">57 pending on route</div></div>
+            <div class="kpi"><div class="k">Running late</div><div class="v" style="color:var(--alert)">2</div><div class="d">Route 3 (+11 min), Route 6 (+6 min)</div></div>
+            <div class="kpi"><div class="k">Absent today</div><div class="v">14</div><div class="d">9 informed by parents</div></div>
+          </div>
+          <div class="g23">
+            <div class="card"><div class="ch"><h4>Fleet right now</h4><span class="hint">Updates every 10 seconds</span><div class="spacer"></div><button class="btn sm">Open full map</button></div>
+              <div class="map" data-map="city" style="min-height:296px"></div>
+            </div>
+            <div class="card"><div class="ch"><h4>Needs attention</h4><div class="spacer"></div><span class="pill bad">4 new</span></div>
+              <div class="alertrow"><div class="ai r">!</div><div><div class="al-t">Route 3 stopped 9 min at Kadri Temple</div><div class="al-s">KA-19 AB 4412 · Suresh Poojary · engine on</div></div><div class="al-x">7:31</div></div>
+              <div class="alertrow"><div class="ai y">▲</div><div><div class="al-t">Over speed 64 km/h on Bejai Main Road</div><div class="al-s">Route 6 · limit set to 50 km/h</div></div><div class="al-x">7:28</div></div>
+              <div class="alertrow"><div class="ai y">↺</div><div><div class="al-t">Nihal Kamath not boarded at Stop 4</div><div class="al-s">Parent not reachable · driver waited 90 s</div></div><div class="al-x">7:22</div></div>
+              <div class="alertrow"><div class="ai b">◷</div><div><div class="al-t">Route 5 has not started</div><div class="al-s">Driver Ibrahim Bava on leave — no substitute assigned</div></div><div class="al-x">7:05</div></div>
+              <div class="alertrow"><div class="ai g">✓</div><div><div class="al-t">Route 1 reached school</div><div class="al-s">32 children · 4 min early</div></div><div class="al-x">7:38</div></div>
+            </div>
+          </div>
+          <div class="card"><div class="ch"><h4>Trips this morning</h4><div class="spacer"></div><button class="btn sm">Export</button><button class="btn sm pri">Send message to parents</button></div>
+            <table class="tbl">
+              <tr><th>Route</th><th>Bus</th><th>Driver &amp; attendant</th><th>Progress</th><th>Children</th><th>ETA at school</th><th>Status</th></tr>
+              <tr><td class="nm">R1 · Kadri – Bejai</td><td><span class="plate">KA 19 AB 4412</span></td><td>Suresh Poojary<div class="sub2">Shobha K.</div></td><td class="mono">12 / 12 stops</td><td class="mono">32 / 32</td><td class="mono">Arrived 7:38</td><td><span class="pill live"><b></b>At school</span></td></tr>
+              <tr><td class="nm">R2 · Kankanady – Attavar</td><td><span class="plate">KA 19 AB 6710</span></td><td>Ramesh Shetty<div class="sub2">Jayanthi P.</div></td><td class="mono">9 / 14 stops</td><td class="mono">27 / 34</td><td class="mono">7:51</td><td><span class="pill live"><b></b>On time</span></td></tr>
+              <tr><td class="nm">R3 · Surathkal – Kottara</td><td><span class="plate">KA 19 AC 1188</span></td><td>Naveen D'Souza<div class="sub2">Vasanthi M.</div></td><td class="mono">7 / 15 stops</td><td class="mono">19 / 38</td><td class="mono" style="color:var(--alert)">8:06 · +11</td><td><span class="pill bad"><b></b>Late</span></td></tr>
+              <tr><td class="nm">R4 · Mangaladevi – Jeppu</td><td><span class="plate">KA 19 AB 9023</span></td><td>Praveen Salian<div class="sub2">—</div></td><td class="mono">11 / 13 stops</td><td class="mono">30 / 31</td><td class="mono">7:49</td><td><span class="pill live"><b></b>On time</span></td></tr>
+              <tr><td class="nm">R5 · Deralakatte</td><td><span class="plate">KA 19 AC 3345</span></td><td class="mut">Not assigned</td><td class="mono mut">—</td><td class="mono mut">0 / 29</td><td class="mono mut">—</td><td><span class="pill warn"><b></b>Not started</span></td></tr>
+              <tr><td class="nm">R6 · Bondel – Kavoor</td><td><span class="plate">KA 19 AB 5567</span></td><td>Ismail Sheikh<div class="sub2">Rekha D.</div></td><td class="mono">8 / 12 stops</td><td class="mono">21 / 30</td><td class="mono" style="color:#8A5B00">7:56 · +6</td><td><span class="pill warn"><b></b>Delay</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">This is the screen the clerk keeps open all morning. Everything else in the product is a detour from here. Ship this first.</p>
+</section>
+
+<!-- SA-03 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-03</span><h2>Live map — whole fleet</h2><span>Full-bleed map with a collapsible bus list. Click a bus to jump to SA-04.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/live</div></div>
+    <div class="app"><div class="side" data-nav="live"></div>
+      <div class="main">
+        <div class="top"><h3>Live map</h3><div class="sub">Last position update 4 s ago</div><div class="spacer"></div><span class="pill live"><b></b>6 running</span><span class="pill mut">2 idle</span><div class="clock">7:42:16 AM</div></div>
+        <div style="display:grid;grid-template-columns:268px 1fr;flex:1">
+          <div style="background:#fff;border-right:1px solid var(--line)">
+            <div style="padding:12px 14px;border-bottom:1px solid var(--line)"><div class="inp ph" style="font-size:12.5px">Search bus, route or child</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EDF1F5;background:#F7F9FB"><div class="row"><span class="plate">KA 19 AB 4412</span><span class="pill live" style="margin-left:auto"><b></b>At school</span></div><div class="sub2" style="margin-top:5px">R1 Kadri – Bejai · 32 children · 0 km/h</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EDF1F5"><div class="row"><span class="plate">KA 19 AB 6710</span><span class="pill live" style="margin-left:auto"><b></b>On time</span></div><div class="sub2" style="margin-top:5px">R2 Kankanady · 27 aboard · 34 km/h</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EDF1F5;box-shadow:inset 3px 0 0 var(--alert)"><div class="row"><span class="plate">KA 19 AC 1188</span><span class="pill bad" style="margin-left:auto"><b></b>+11 min</span></div><div class="sub2" style="margin-top:5px">R3 Surathkal · 19 aboard · 0 km/h · halted 9 min</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EDF1F5"><div class="row"><span class="plate">KA 19 AB 9023</span><span class="pill live" style="margin-left:auto"><b></b>On time</span></div><div class="sub2" style="margin-top:5px">R4 Mangaladevi · 30 aboard · 28 km/h</div></div>
+            <div style="padding:10px 14px;border-bottom:1px solid #EDF1F5"><div class="row"><span class="plate">KA 19 AC 3345</span><span class="pill warn" style="margin-left:auto"><b></b>Idle</span></div><div class="sub2" style="margin-top:5px">R5 Deralakatte · in school yard</div></div>
+            <div style="padding:10px 14px"><div class="row"><span class="plate">KA 19 AB 5567</span><span class="pill warn" style="margin-left:auto"><b></b>+6 min</span></div><div class="sub2" style="margin-top:5px">R6 Bondel · 21 aboard · 41 km/h</div></div>
+          </div>
+          <div class="map" data-map="city" style="min-height:430px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Map: <b>MapLibre GL + OpenStreetMap tiles</b> — no Google Maps bill. Positions arrive over a websocket, markers move by interpolation so it never looks jumpy on a 2G driver phone.</p>
+</section>
+
+<!-- SA-04 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-04</span><h2>Trip detail — one bus, live</h2><span>The route rail is the spine of this product. It reappears in the driver and parent apps unchanged.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/trips/r3-2026-08-14-am</div></div>
+    <div class="app"><div class="side" data-nav="live"></div>
+      <div class="main">
+        <div class="top"><h3>Route 3 · Surathkal – Kottara</h3><div class="sub">Morning pickup · 14 Aug</div><div class="spacer"></div><span class="pill bad"><b></b>Running 11 min late</span><button class="btn sm">Call driver</button><button class="btn sm pri">Message parents on this route</button></div>
+        <div class="pad">
+          <div class="g4">
+            <div class="kpi"><div class="k">Bus</div><div class="v" style="font-size:19px;padding-top:9px"><span class="plate">KA 19 AC 1188</span></div><div class="d">Tata LP 40-seater · 2019</div></div>
+            <div class="kpi"><div class="k">Speed now</div><div class="v">0 <small>km/h</small></div><div class="d">Halted 9 min · engine on</div></div>
+            <div class="kpi"><div class="k">Aboard</div><div class="v">19 <small>/ 38</small></div><div class="d">3 marked absent · 16 pending</div></div>
+            <div class="kpi"><div class="k">Reaching school</div><div class="v" style="font-size:26px;padding-top:6px">8:06 AM</div><div class="d">Assembly at 8:15 — will make it</div></div>
+          </div>
+          <div class="g23">
+            <div class="card"><div class="ch"><h4>On the road</h4><span class="hint">Halted at Kadri Temple stop since 7:31</span></div><div class="map" data-map="route" style="min-height:300px"></div></div>
+            <div class="card"><div class="ch"><h4>Stops</h4><div class="spacer"></div><span class="hint mono">7 of 15 done</span></div>
+              <div class="cb" style="max-height:300px;overflow:auto">
+                <ul class="rail">
+                  <li class="done"><div class="t"><b>Surathkal Circle</b><span class="tm">7:06 ✓</span></div><div class="m">4 boarded · 0 absent</div></li>
+                  <li class="done"><div class="t"><b>NITK Gate</b><span class="tm">7:11 ✓</span></div><div class="m">3 boarded</div></li>
+                  <li class="done"><div class="t"><b>Mukka Junction</b><span class="tm">7:17 ✓</span></div><div class="m">2 boarded · 1 absent</div></li>
+                  <li class="done"><div class="t"><b>Hosabettu</b><span class="tm">7:22 ✓</span></div><div class="m">3 boarded</div></li>
+                  <li class="done"><div class="t"><b>Baikampady</b><span class="tm">7:26 ✓</span></div><div class="m">2 boarded · 1 absent</div></li>
+                  <li class="done"><div class="t"><b>Kulur Bridge</b><span class="tm">7:29 ✓</span></div><div class="m">3 boarded</div></li>
+                  <li class="now"><div class="t"><b>Kadri Temple</b><span class="tm">Here · 9 min</span></div><div class="m">2 boarded · waiting for 1</div></li>
+                  <li><div class="t"><b>Kadri Park</b><span class="tm">7:47</span></div><div class="m">3 children expected</div></li>
+                  <li><div class="t"><b>Bejai Church</b><span class="tm">7:53</span></div><div class="m">5 children expected</div></li>
+                  <li><div class="t"><b>Kottara Chowki</b><span class="tm">7:59</span></div><div class="m">4 children expected</div></li>
+                  <li><div class="t"><b>School gate</b><span class="tm">8:06</span></div><div class="m">Drop off</div></li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ch"><h4>Children aboard</h4><div class="spacer"></div><span class="hint">Green = scanned in · Red = marked absent</span></div>
+              <div class="cb"><div class="seat">
+                <div class="in">A.R</div><div class="in">N.K</div><div class="in">S.F</div><div class="in">V.B</div><div class="in">D.S</div><div class="in">M.H</div>
+                <div class="in">P.R</div><div class="in">T.A</div><div class="ab">R.K</div><div class="in">L.M</div><div class="in">G.P</div><div class="in">A.S</div>
+                <div class="in">K.N</div><div class="ab">J.D</div><div class="in">H.B</div><div class="in">S.M</div><div class="in">Y.R</div><div class="in">C.P</div>
+                <div class="in">Z.A</div><div class="ab">B.K</div><div></div><div></div><div></div><div></div>
+              </div></div>
+            </div>
+            <div class="card"><div class="ch"><h4>Today's log</h4></div>
+              <div class="alertrow"><div class="ai y">◷</div><div><div class="al-t">Halted more than 5 minutes</div><div class="al-s">Kadri Temple · driver reported heavy traffic</div></div><div class="al-x">7:36</div></div>
+              <div class="alertrow"><div class="ai b">↺</div><div><div class="al-t">Nihal Kamath marked not boarded</div><div class="al-s">By attendant Vasanthi M.</div></div><div class="al-x">7:22</div></div>
+              <div class="alertrow"><div class="ai g">✓</div><div><div class="al-t">Trip started</div><div class="al-s">Pre-trip check completed · fuel 3/4</div></div><div class="al-x">7:02</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">ETA is computed per stop from live speed + the last 20 school-day averages for that leg, not from a routing API. Cheaper and more accurate on Mangalore roads.</p>
+</section>
+
+<!-- SA-05 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-05</span><h2>Routes &amp; stops</h2><span>Drag stops to reorder; the map redraws. Set-up work, done once in June.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/routes/r3</div></div>
+    <div class="app"><div class="side" data-nav="routes"></div>
+      <div class="main">
+        <div class="top"><h3>Routes</h3><div class="sub">8 routes · 108 stops</div><div class="spacer"></div><button class="btn sm">Copy last year's routes</button><button class="btn sm pri">Add route</button></div>
+        <div class="tabs"><a class="on" href="#">R3 Surathkal – Kottara</a><a href="#">R1</a><a href="#">R2</a><a href="#">R4</a><a href="#">R5</a><a href="#">R6</a><a href="#">R7</a><a href="#">R8</a></div>
+        <div class="pad">
+          <div class="g32">
+            <div class="card"><div class="ch"><h4>Stop order</h4><div class="spacer"></div><span class="hint">Drag to reorder</span></div>
+              <div class="cb">
+                <ul class="rail">
+                  <li class="done"><div class="t"><b>1 · Surathkal Circle</b><span class="tm">7:05</span></div><div class="m">4 children · wait 60 s</div></li>
+                  <li class="done"><div class="t"><b>2 · NITK Gate</b><span class="tm">7:10</span></div><div class="m">3 children · wait 45 s</div></li>
+                  <li class="done"><div class="t"><b>3 · Mukka Junction</b><span class="tm">7:16</span></div><div class="m">3 children</div></li>
+                  <li class="done"><div class="t"><b>4 · Hosabettu</b><span class="tm">7:21</span></div><div class="m">3 children</div></li>
+                  <li class="now"><div class="t"><b>5 · Baikampady</b><span class="tm">7:25</span></div><div class="m">Editing · 3 children · geofence 80 m</div></li>
+                  <li><div class="t"><b>6 · Kulur Bridge</b><span class="tm">7:29</span></div><div class="m">3 children</div></li>
+                  <li><div class="t"><b>7 · Kadri Temple</b><span class="tm">7:34</span></div><div class="m">3 children</div></li>
+                  <li><div class="t"><b>8 · Kadri Park</b><span class="tm">7:39</span></div><div class="m">3 children</div></li>
+                </ul>
+                <button class="btn sm" style="width:100%;margin-top:8px">+ Add stop</button>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>Stop 5 · Baikampady</h4><div class="spacer"></div><button class="btn sm">Delete</button><button class="btn sm pri">Save stop</button></div>
+              <div class="map" data-map="route" style="min-height:210px"></div>
+              <div class="cb">
+                <div class="g2">
+                  <div class="field"><label class="lbl">Stop name shown to parents</label><div class="inp">Baikampady Bus Stand</div></div>
+                  <div class="field"><label class="lbl">Pickup time</label><div class="inp mono">07:25</div></div>
+                  <div class="field"><label class="lbl">Geofence radius</label><div class="inp mono">80 m</div></div>
+                  <div class="field"><label class="lbl">How long the bus waits</label><div class="inp mono">60 seconds</div></div>
+                </div>
+                <label class="lbl">Children at this stop</label>
+                <div class="row" style="flex-wrap:wrap;gap:7px"><span class="pill">Aditi Rao · 6B</span><span class="pill">Vihaan Bhat · 4A</span><span class="pill">Sanya Fernandes · 8C</span><button class="btn sm">+ Assign child</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Geofence radius per stop matters more than you'd think — a 50 m default fires false "arrived" alerts on Surathkal service roads. Make it editable from day one.</p>
+</section>
+
+<!-- SA-06 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-06</span><h2>Children &amp; parents</h2><span>Bulk import from the school's existing Excel. This is the screen that decides whether onboarding takes 2 hours or 2 weeks.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/children</div></div>
+    <div class="app"><div class="side" data-nav="kids"></div>
+      <div class="main">
+        <div class="top"><h3>Children</h3><div class="sub">268 using transport · 1,140 total students</div><div class="spacer"></div><button class="btn sm">Import from Excel</button><button class="btn sm">Send app invites (41 pending)</button><button class="btn sm pri">Add child</button></div>
+        <div class="pad">
+          <div class="row" style="gap:8px"><div class="inp ph" style="max-width:280px;font-size:12.5px">Search name, class or parent number</div><span class="pill">Route: all</span><span class="pill">Class: all</span><span class="pill warn">No parent number: 12</span><span class="pill bad">App not installed: 41</span></div>
+          <div class="card">
+            <table class="tbl">
+              <tr><th>Child</th><th>Class</th><th>Route &amp; stop</th><th>Parent</th><th>Alerts go to</th><th>App</th><th></th></tr>
+              <tr><td class="nm">Aditi Rao<div class="sub2 mono">ADM-2211</div></td><td>6B</td><td>R3 · Baikampady</td><td>Shweta Rao<div class="sub2 mono">+91 98450 11223</div></td><td><span class="pill live">App</span> <span class="pill">WhatsApp</span></td><td><span class="pill live"><b></b>Installed</span></td><td><button class="btn sm">Edit</button></td></tr>
+              <tr><td class="nm">Nihal Kamath<div class="sub2 mono">ADM-1984</div></td><td>4A</td><td>R3 · Kadri Temple</td><td>Girish Kamath<div class="sub2 mono">+91 99001 77340</div></td><td><span class="pill">WhatsApp</span></td><td><span class="pill warn"><b></b>Invite sent</span></td><td><button class="btn sm">Edit</button></td></tr>
+              <tr><td class="nm">Sanya Fernandes<div class="sub2 mono">ADM-2098</div></td><td>8C</td><td>R3 · Baikampady</td><td>Melwyn Fernandes<div class="sub2 mono">+91 94488 20991</div></td><td><span class="pill live">App</span></td><td><span class="pill live"><b></b>Installed</span></td><td><button class="btn sm">Edit</button></td></tr>
+              <tr><td class="nm">Vihaan Bhat<div class="sub2 mono">ADM-2340</div></td><td>4A</td><td>R3 · Baikampady</td><td>Deepa Bhat<div class="sub2 mono">—</div></td><td><span class="pill bad">No number</span></td><td><span class="pill mut">—</span></td><td><button class="btn sm">Edit</button></td></tr>
+              <tr><td class="nm">Mohammed Hisham<div class="sub2 mono">ADM-1877</div></td><td>9A</td><td>R6 · Bondel Cross</td><td>Ayesha Sheikh<div class="sub2 mono">+91 90080 45512</div></td><td><span class="pill live">App</span> <span class="pill">SMS</span></td><td><span class="pill live"><b></b>Installed</span></td><td><button class="btn sm">Edit</button></td></tr>
+              <tr><td class="nm">Prathiksha Shetty<div class="sub2 mono">ADM-2455</div></td><td>2B</td><td>R1 · Kadri Park</td><td>Ravi Shetty<div class="sub2 mono">+91 97400 33218</div></td><td><span class="pill">WhatsApp</span></td><td><span class="pill warn"><b></b>Invite sent</span></td><td><button class="btn sm">Edit</button></td></tr>
+            </table>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ch"><h4>Import from Excel</h4><span class="hint">Step 2 of 3 — match your columns</span></div>
+              <div class="cb">
+                <div class="stat-line"><span>Your column <b class="mono">Student Name</b></span><span class="pill live">→ Child name</span></div>
+                <div class="stat-line"><span>Your column <b class="mono">Adm No</b></span><span class="pill live">→ Admission number</span></div>
+                <div class="stat-line"><span>Your column <b class="mono">Std/Div</b></span><span class="pill live">→ Class</span></div>
+                <div class="stat-line"><span>Your column <b class="mono">Father Mob</b></span><span class="pill live">→ Parent mobile</span></div>
+                <div class="stat-line"><span>Your column <b class="mono">Bus Pt</b></span><span class="pill warn">→ Needs review · 6 unmatched stops</span></div>
+                <button class="btn pri" style="width:100%;margin-top:12px">Import 268 rows</button>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>Leave &amp; stop changes today</h4><div class="spacer"></div><span class="hint">From the parent app</span></div>
+              <div class="alertrow"><div class="ai b">L</div><div><div class="al-t">Ritvik Kamath — not travelling today</div><div class="al-s">Fever · applied by parent at 6:40 AM · R3</div></div><div class="al-x">Auto-approved</div></div>
+              <div class="alertrow"><div class="ai y">S</div><div><div class="al-t">Sanya Fernandes — evening drop at grandmother's stop</div><div class="al-s">Kottara Chowki instead of Baikampady · needs approval</div></div><div class="al-x"><button class="btn sm pri">Approve</button></div></div>
+              <div class="alertrow"><div class="ai b">L</div><div><div class="al-t">Joel D'Souza — evening only, morning by own vehicle</div><div class="al-s">R1 · applied yesterday</div></div><div class="al-x">Approved</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Evening-drop changes are the #1 real-world safety incident. Make it a request the office approves, never something a parent can silently change.</p>
+</section>
+
+<!-- SA-07 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-07</span><h2>Drivers &amp; attendants</h2><span>Licence and RC expiry tracking is a genuine compliance headache for schools — own it.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/staff</div></div>
+    <div class="app"><div class="side" data-nav="staff"></div>
+      <div class="main">
+        <div class="top"><h3>Drivers &amp; attendants</h3><div class="sub">8 drivers · 7 attendants · 8 buses</div><div class="spacer"></div><button class="btn sm">Assign substitute</button><button class="btn sm pri">Add staff</button></div>
+        <div class="pad">
+          <div class="g4">
+            <div class="kpi"><div class="k">On duty today</div><div class="v">7 <small>/ 8</small></div><div class="d">Ibrahim Bava on leave</div></div>
+            <div class="kpi"><div class="k">Licence expiring</div><div class="v" style="color:#8A5B00">2</div><div class="d">Within 60 days</div></div>
+            <div class="kpi"><div class="k">Fitness certificate due</div><div class="v" style="color:var(--alert)">1</div><div class="d">KA 19 AC 3345 · 22 Aug</div></div>
+            <div class="kpi"><div class="k">Speed warnings this week</div><div class="v">9</div><div class="d">6 by one driver</div></div>
+          </div>
+          <div class="card"><div class="ch"><h4>Staff</h4><div class="spacer"></div><span class="pill warn">3 documents need renewal</span></div>
+            <table class="tbl">
+              <tr><th>Name</th><th>Role</th><th>Assigned to</th><th>Licence</th><th>Police verification</th><th>Driving score</th><th>Today</th></tr>
+              <tr><td class="nm">Suresh Poojary<div class="sub2 mono">+91 98860 11004</div></td><td>Driver</td><td>R1 · <span class="plate">KA 19 AB 4412</span></td><td class="mono">Valid to 03/2029</td><td><span class="pill live">Done · 06/2026</span></td><td><span class="pill live">92</span></td><td><span class="pill live"><b></b>Trip done</span></td></tr>
+              <tr><td class="nm">Ramesh Shetty<div class="sub2 mono">+91 99012 44518</div></td><td>Driver</td><td>R2 · <span class="plate">KA 19 AB 6710</span></td><td class="mono" style="color:#8A5B00">Expires 21/09/2026</td><td><span class="pill live">Done · 01/2026</span></td><td><span class="pill live">88</span></td><td><span class="pill live"><b></b>Running</span></td></tr>
+              <tr><td class="nm">Naveen D'Souza<div class="sub2 mono">+91 94491 20087</div></td><td>Driver</td><td>R3 · <span class="plate">KA 19 AC 1188</span></td><td class="mono">Valid to 11/2027</td><td><span class="pill live">Done · 06/2026</span></td><td><span class="pill warn">71</span></td><td><span class="pill bad"><b></b>Late</span></td></tr>
+              <tr><td class="nm">Ibrahim Bava<div class="sub2 mono">+91 90190 55621</div></td><td>Driver</td><td>R5 · <span class="plate">KA 19 AC 3345</span></td><td class="mono">Valid to 07/2028</td><td><span class="pill warn">Renewal due</span></td><td><span class="pill live">85</span></td><td><span class="pill mut">On leave</span></td></tr>
+              <tr><td class="nm">Shobha Kumari<div class="sub2 mono">+91 98455 77201</div></td><td>Attendant</td><td>R1</td><td class="mut">—</td><td><span class="pill live">Done · 06/2026</span></td><td class="mut">—</td><td><span class="pill live"><b></b>Trip done</span></td></tr>
+              <tr><td class="nm">Vasanthi Moily<div class="sub2 mono">+91 97317 09943</div></td><td>Attendant</td><td>R3</td><td class="mut">—</td><td><span class="pill live">Done · 02/2026</span></td><td class="mut">—</td><td><span class="pill live"><b></b>Running</span></td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Driving score = speed violations + harsh braking + halt time, computed from the phone's accelerometer. Schools love this in the sales demo; principals show it to parents.</p>
+</section>
+
+<!-- SA-08 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-08</span><h2>Boarding log</h2><span>Who got on which bus, when, marked by whom. Your legal record if anything ever goes wrong.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/boarding</div></div>
+    <div class="app"><div class="side" data-nav="board"></div>
+      <div class="main">
+        <div class="top"><h3>Boarding log</h3><div class="sub">Friday, 14 August 2026 · morning</div><div class="spacer"></div><span class="pill">Morning</span><span class="pill mut">Evening</span><button class="btn sm">Download PDF</button></div>
+        <div class="pad">
+          <div class="g4">
+            <div class="kpi"><div class="k">Boarded</div><div class="v" style="color:var(--live)">211</div><div class="d">Scanned by attendant or driver</div></div>
+            <div class="kpi"><div class="k">Absent — informed</div><div class="v">9</div><div class="d">Parents applied leave in app</div></div>
+            <div class="kpi"><div class="k">Absent — not informed</div><div class="v" style="color:var(--alert)">5</div><div class="d">Office called 3, 2 pending</div></div>
+            <div class="kpi"><div class="k">Dropped at school</div><div class="v">143</div><div class="d">3 buses still on route</div></div>
+          </div>
+          <div class="card"><div class="ch"><h4>Every boarding event</h4><div class="spacer"></div><span class="hint">Newest first · immutable log</span></div>
+            <table class="tbl">
+              <tr><th>Time</th><th>Child</th><th>Route &amp; stop</th><th>Event</th><th>Marked by</th><th>Parent notified</th></tr>
+              <tr><td class="mono">7:38:22</td><td class="nm">Prathiksha Shetty · 2B</td><td>R1 · School gate</td><td><span class="pill live">Dropped at school</span></td><td>Auto · geofence</td><td class="mono mut">App 7:38</td></tr>
+              <tr><td class="mono">7:34:05</td><td class="nm">Aditi Rao · 6B</td><td>R3 · Kadri Temple</td><td><span class="pill live">Boarded</span></td><td>Vasanthi M. (attendant)</td><td class="mono mut">App 7:34</td></tr>
+              <tr><td class="mono">7:33:41</td><td class="nm">Ritvik Kamath · 5C</td><td>R3 · Kadri Temple</td><td><span class="pill bad">Not boarded</span></td><td>Vasanthi M. (attendant)</td><td class="mono mut">WhatsApp 7:33</td></tr>
+              <tr><td class="mono">7:29:18</td><td class="nm">Mohammed Hisham · 9A</td><td>R6 · Bondel Cross</td><td><span class="pill live">Boarded</span></td><td>Rekha D. (attendant)</td><td class="mono mut">App 7:29</td></tr>
+              <tr><td class="mono">7:26:50</td><td class="nm">Joel D'Souza · 7A</td><td>R3 · Baikampady</td><td><span class="pill mut">On leave</span></td><td>Parent · applied 6:40 AM</td><td class="mono mut">—</td></tr>
+              <tr><td class="mono">7:22:09</td><td class="nm">Sanya Fernandes · 8C</td><td>R3 · Baikampady</td><td><span class="pill live">Boarded</span></td><td>Vasanthi M. (attendant)</td><td class="mono mut">App 7:22</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Boarding is marked by tapping a child's photo tile in the driver app — <b>not</b> RFID cards. Cards get lost, cost ₹80 each, and schools won't replace them. Photos also help substitute drivers.</p>
+</section>
+
+<!-- SA-09 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-09</span><h2>Alerts &amp; SOS</h2><span>SOS from a driver takes over the screen and rings on the office phone.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/alerts</div></div>
+    <div class="app"><div class="side" data-nav="alerts"></div>
+      <div class="main">
+        <div class="top"><h3>Alerts</h3><div class="sub">Last 7 days</div><div class="spacer"></div><button class="btn sm">Alert settings</button><button class="btn sm">Mark all read</button></div>
+        <div class="pad">
+          <div class="card" style="border-color:var(--alert);border-width:2px">
+            <div class="ch" style="background:#FBE4E1;border-color:#EDB6AE"><h4 style="color:var(--alert)">SOS — Route 7, KA 19 AB 7781</h4><div class="spacer"></div><span class="pill bad"><b></b>Active · 1 min 12 s</span></div>
+            <div class="cb">
+              <div class="g2">
+                <div>
+                  <div class="stat-line"><span>Raised by</span><b>Naveen Kotian (driver)</b></div>
+                  <div class="stat-line"><span>Reason given</span><b>Vehicle breakdown</b></div>
+                  <div class="stat-line"><span>Location</span><b>Pumpwell flyover, southbound</b></div>
+                  <div class="stat-line"><span>Children aboard</span><b>26</b></div>
+                  <div class="row" style="margin-top:14px"><button class="btn dgr">Call driver now</button><button class="btn">Send another bus</button><button class="btn">Notify 26 parents</button><button class="btn">Close SOS</button></div>
+                </div>
+                <div class="map" data-map="route" style="min-height:170px;border-radius:10px;overflow:hidden"></div>
+              </div>
+            </div>
+          </div>
+          <div class="card"><div class="ch"><h4>Alert history</h4><div class="spacer"></div><span class="pill">All types</span><span class="pill mut">Route: all</span></div>
+            <table class="tbl">
+              <tr><th>When</th><th>Type</th><th>What happened</th><th>Route</th><th>Handled by</th></tr>
+              <tr><td class="mono">Today 7:31</td><td><span class="pill warn">Long halt</span></td><td>Stopped 9 min at Kadri Temple</td><td>R3</td><td>Sunitha L. · called driver</td></tr>
+              <tr><td class="mono">Today 7:28</td><td><span class="pill warn">Over speed</span></td><td>64 km/h in a 50 zone, Bejai Main Road</td><td>R6</td><td class="mut">Not reviewed</td></tr>
+              <tr><td class="mono">Today 7:22</td><td><span class="pill bad">Child not boarded</span></td><td>Nihal Kamath missed at Stop 4</td><td>R3</td><td>Sunitha L. · parent informed</td></tr>
+              <tr><td class="mono">Yest 4:12 PM</td><td><span class="pill bad">Route deviation</span></td><td>Bus left route corridor for 1.8 km</td><td>R2</td><td>Transport in-charge · road closed</td></tr>
+              <tr><td class="mono">Yest 7:52 AM</td><td><span class="pill warn">Trip started late</span></td><td>Started 18 min after schedule</td><td>R5</td><td>Sunitha L.</td></tr>
+              <tr><td class="mono">12 Aug 5:02 PM</td><td><span class="pill bad">Child still aboard</span></td><td>1 child not dropped after last stop — driver alerted</td><td>R4</td><td>Resolved in 4 min</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">"Child still aboard after last stop" is the alert that sells the product. It is also the one that must never false-fire — tie it to the boarding count, not the geofence alone.</p>
+</section>
+
+<!-- SA-10 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-10</span><h2>Send a message to parents</h2><span>Rain day, strike, early closing. Goes to app + WhatsApp + SMS fallback.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/messages/new</div></div>
+    <div class="app"><div class="side" data-nav="msg"></div>
+      <div class="main">
+        <div class="top"><h3>New message</h3><div class="sub">Sent messages are logged permanently</div><div class="spacer"></div><button class="btn sm">Use a saved template</button></div>
+        <div class="pad">
+          <div class="g23">
+            <div class="card"><div class="ch"><h4>Compose</h4></div>
+              <div class="cb">
+                <div class="field"><label class="lbl">Who gets this</label>
+                  <div class="row" style="flex-wrap:wrap;gap:7px"><span class="pill live"><b></b>Route 3 parents · 38</span><span class="pill live"><b></b>Route 6 parents · 30</span><button class="btn sm">+ Add route, class or whole school</button></div>
+                </div>
+                <div class="field"><label class="lbl">Message</label>
+                  <div class="inp" style="min-height:110px;line-height:1.55">Heavy rain in Surathkal and Bondel. Buses on Route 3 and 6 will reach school about 20 minutes late today. Children are safe with the attendant. Please do not send children back home from the stop.</div>
+                </div>
+                <div class="field"><label class="lbl">Also send in</label>
+                  <div class="row"><span class="pill live"><b></b>English</span><span class="pill live"><b></b>ಕನ್ನಡ Kannada</span><span class="pill mut">हिंदी</span><span class="pill mut">Tulu (Kannada script)</span></div>
+                </div>
+                <div class="row" style="margin-top:6px"><button class="btn pri">Send to 68 parents</button><button class="btn">Save as template</button><span class="mut" style="font-size:12px">Estimated cost ₹0 (app) + ₹8.16 (WhatsApp)</span></div>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>How it will arrive</h4><span class="hint">Same text, three channels</span></div>
+              <div class="cb">
+                <div style="background:#DCF8C6;border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.5;margin-bottom:12px"><b style="font-size:11.5px;color:#0F7A50;display:block;margin-bottom:3px">WhatsApp · Sharada Vidyalaya</b>Heavy rain in Surathkal and Bondel. Buses on Route 3 and 6 will reach school about 20 minutes late today…<div class="mono mut" style="font-size:10.5px;text-align:right;margin-top:4px">7:44 ✓✓</div></div>
+                <div style="background:var(--ink);color:#fff;border-radius:12px;padding:11px 13px;font-size:13px;line-height:1.5"><b style="font-size:11.5px;color:var(--bus);display:block;margin-bottom:3px">Push · BusMitra</b>Route 3 running 20 min late — heavy rain<div style="color:#A9B8CA;font-size:11.5px;margin-top:2px">Tap to see live location of Aditi's bus</div></div>
+                <div class="stat-line" style="margin-top:14px"><span>Delivered on app</span><b>52</b></div>
+                <div class="stat-line"><span>Delivered on WhatsApp</span><b>16</b></div>
+                <div class="stat-line"><span>Failed — bad number</span><b style="color:var(--alert)">2</b></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">WhatsApp utility templates cost ₹0.115 each in India and must be pre-approved by Meta. Register 6 templates during onboarding: late, early, SOS, not-boarded, reached-school, holiday.</p>
+</section>
+
+<!-- SA-11 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-11</span><h2>Reports</h2><span>What the principal takes to the management meeting and to parents.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/reports</div></div>
+    <div class="app"><div class="side" data-nav="rep"></div>
+      <div class="main">
+        <div class="top"><h3>Reports</h3><div class="sub">1 – 14 August 2026</div><div class="spacer"></div><span class="pill">This month</span><button class="btn sm">Email to principal every Monday</button><button class="btn sm pri">Download PDF</button></div>
+        <div class="pad">
+          <div class="g4">
+            <div class="kpi hot"><div class="k">On-time arrival</div><div class="v">94<small>%</small></div><div class="d">Up from 88% in July</div></div>
+            <div class="kpi"><div class="k">Average delay</div><div class="v">4<small> min</small></div><div class="d">Worst: R3 at 11 min</div></div>
+            <div class="kpi"><div class="k">Distance covered</div><div class="v">7,412<small> km</small></div><div class="d">Across 8 buses, 22 school days</div></div>
+            <div class="kpi"><div class="k">Speed violations</div><div class="v">27</div><div class="d">Down from 41 last month</div></div>
+          </div>
+          <div class="g2">
+            <div class="card"><div class="ch"><h4>Arrival at school, by day</h4><span class="hint">Minutes late, all routes averaged</span></div>
+              <div class="cb"><div class="bars">
+                <div class="b" style="height:30%"><span>1</span></div><div class="b" style="height:22%"><span>4</span></div><div class="b" style="height:45%"><span>5</span></div><div class="b on" style="height:78%"><span>6</span></div><div class="b" style="height:34%"><span>7</span></div><div class="b" style="height:26%"><span>8</span></div><div class="b" style="height:19%"><span>11</span></div><div class="b on" style="height:66%"><span>12</span></div><div class="b" style="height:41%"><span>13</span></div><div class="b" style="height:52%"><span>14</span></div>
+              </div><p class="note" style="margin-top:26px">6 and 12 August were heavy rain days. Highlighted automatically from delay pattern across all routes.</p></div>
+            </div>
+            <div class="card"><div class="ch"><h4>Route by route</h4></div>
+              <table class="tbl">
+                <tr><th>Route</th><th>On time</th><th>Avg delay</th><th>Km</th><th>Violations</th></tr>
+                <tr><td class="nm">R1 Kadri – Bejai</td><td><span class="pill live">98%</span></td><td class="mono">1 min</td><td class="mono">842</td><td class="mono">1</td></tr>
+                <tr><td class="nm">R2 Kankanady</td><td><span class="pill live">96%</span></td><td class="mono">2 min</td><td class="mono">918</td><td class="mono">3</td></tr>
+                <tr><td class="nm">R3 Surathkal</td><td><span class="pill bad">81%</span></td><td class="mono">11 min</td><td class="mono">1,466</td><td class="mono">4</td></tr>
+                <tr><td class="nm">R4 Mangaladevi</td><td><span class="pill live">97%</span></td><td class="mono">2 min</td><td class="mono">760</td><td class="mono">2</td></tr>
+                <tr><td class="nm">R5 Deralakatte</td><td><span class="pill warn">89%</span></td><td class="mono">7 min</td><td class="mono">1,204</td><td class="mono">6</td></tr>
+                <tr><td class="nm">R6 Bondel – Kavoor</td><td><span class="pill warn">90%</span></td><td class="mono">6 min</td><td class="mono">889</td><td class="mono">9</td></tr>
+              </table>
+            </div>
+          </div>
+          <div class="card"><div class="ch"><h4>Ready-made reports</h4></div>
+            <div class="cb"><div class="row" style="flex-wrap:wrap;gap:9px">
+              <button class="btn">Monthly transport report (PDF)</button><button class="btn">Attendance by child (Excel)</button><button class="btn">Driver conduct summary</button><button class="btn">Fuel &amp; distance per bus</button><button class="btn">Parent app adoption</button><button class="btn">RTO compliance file</button>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">"Email to principal every Monday" is a retention feature disguised as a report. A principal who reads a weekly email never questions the renewal.</p>
+</section>
+
+<!-- SA-12 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-12</span><h2>Settings</h2><span>School profile, timings, alert thresholds, parent app access.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/settings</div></div>
+    <div class="app"><div class="side" data-nav="set"></div>
+      <div class="main">
+        <div class="top"><h3>Settings</h3><div class="sub">Changes apply from tomorrow's first trip</div><div class="spacer"></div><button class="btn sm pri">Save changes</button></div>
+        <div class="tabs"><a class="on" href="#">School &amp; timings</a><a href="#">Alerts</a><a href="#">Parent app</a><a href="#">Staff logins</a><a href="#">Billing</a></div>
+        <div class="pad">
+          <div class="g2">
+            <div class="card"><div class="ch"><h4>School</h4></div>
+              <div class="cb">
+                <div class="field"><label class="lbl">Name shown to parents</label><div class="inp">Sharada Vidyalaya, Kodialbail</div></div>
+                <div class="g2">
+                  <div class="field"><label class="lbl">Morning assembly</label><div class="inp mono">08:15</div></div>
+                  <div class="field"><label class="lbl">Closing bell</label><div class="inp mono">15:30</div></div>
+                  <div class="field"><label class="lbl">Saturday</label><div class="inp">Half day · closes 12:30</div></div>
+                  <div class="field"><label class="lbl">Buses leave school by</label><div class="inp mono">15:45</div></div>
+                </div>
+                <div class="field"><label class="lbl">Holidays</label><div class="row"><span class="pill">Aug 15 · Independence Day</span><span class="pill">Aug 26 · Krishna Janmashtami</span><button class="btn sm">+ Add</button></div></div>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>When to alert us</h4></div>
+              <div class="cb">
+                <div class="stat-line"><span>Bus stops moving for longer than</span><b class="inp mono" style="width:96px;padding:4px 8px">5 min</b></div>
+                <div class="stat-line"><span>Speed goes above</span><b class="inp mono" style="width:96px;padding:4px 8px">50 km/h</b></div>
+                <div class="stat-line"><span>Bus goes off route by</span><b class="inp mono" style="width:96px;padding:4px 8px">500 m</b></div>
+                <div class="stat-line"><span>Trip has not started by</span><b class="inp mono" style="width:96px;padding:4px 8px">+15 min</b></div>
+                <div class="stat-line"><span>Child not boarded — inform parent</span><span class="pill live">Immediately</span></div>
+                <div class="stat-line"><span>Child still aboard after last stop</span><span class="pill live">Always · cannot turn off</span></div>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>What parents can see</h4></div>
+              <div class="cb">
+                <div class="stat-line"><span>Live bus location on map</span><span class="pill live">On · only their child's bus</span></div>
+                <div class="stat-line"><span>Show location only during trips</span><span class="pill live">On</span></div>
+                <div class="stat-line"><span>Driver name and photo</span><span class="pill live">On</span></div>
+                <div class="stat-line"><span>Driver phone number</span><span class="pill mut">Off · office routes calls</span></div>
+                <div class="stat-line"><span>Parents can apply for leave</span><span class="pill live">On · before 7:00 AM</span></div>
+                <div class="stat-line"><span>Parents can request stop change</span><span class="pill live">On · needs office approval</span></div>
+              </div>
+            </div>
+            <div class="card"><div class="ch"><h4>Your plan</h4></div>
+              <div class="cb">
+                <div class="stat-line"><span>Plan</span><b>Standard · 8 buses</b></div>
+                <div class="stat-line"><span>Price</span><b>₹1,200 per bus / month</b></div>
+                <div class="stat-line"><span>Next invoice</span><b>1 Sep 2026 · ₹9,600 + GST</b></div>
+                <div class="stat-line"><span>Parent app accounts</span><b>268 of 300 included</b></div>
+                <div class="stat-line"><span>WhatsApp messages this month</span><b>1,842 · ₹212</b></div>
+                <div class="row" style="margin-top:12px"><button class="btn">Download invoices</button><button class="btn">Add buses</button></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">"Child still aboard after last stop — cannot turn off" is deliberate. Never let a school disable the one alert that prevents the headline nobody wants.</p>
+</section>
+
+<!-- SA-13 -->
+<section class="shot">
+  <div class="shot-head"><span class="ref">SA-13</span><h2>Principal view</h2><span>Read-only, one screen, big type. Opens on a phone browser too — principals don't sit at a PC.</span></div>
+  <div class="frame"><div class="bar"><i class="dot"></i><i class="dot"></i><i class="dot"></i><div class="url">school.busmitra.in/principal</div></div>
+    <div class="app" style="grid-template-columns:1fr">
+      <div class="main">
+        <div class="chequer"></div>
+        <div class="top"><h3>Good morning, Fr. Alwyn</h3><div class="sub">Sharada Vidyalaya · Friday 14 August</div><div class="spacer"></div><div class="clock">7:42 AM</div><div class="who"><div class="av">FA</div>Principal</div></div>
+        <div class="pad">
+          <div class="card" style="background:var(--ink);border-color:var(--ink);color:#fff">
+            <div class="cb" style="padding:26px 24px">
+              <div class="eyebrow" style="color:#8FA0B6">Right now</div>
+              <div style="font-family:'Archivo Narrow',sans-serif;font-size:38px;font-weight:700;line-height:1.15;margin-top:8px;max-width:30ch">6 of 8 buses running. <span style="color:var(--bus)">211 of 268 children</span> picked up. Two routes late — both will reach before assembly.</div>
+              <div class="row" style="margin-top:20px;gap:8px"><span class="pill bad"><b></b>R3 · 11 min late</span><span class="pill warn"><b></b>R6 · 6 min late</span><span class="pill warn"><b></b>R5 · no driver assigned</span></div>
+            </div>
+          </div>
+          <div class="g3">
+            <div class="card"><div class="ch"><h4>This week</h4></div><div class="cb">
+              <div class="stat-line"><span>On-time arrival</span><b>94%</b></div>
+              <div class="stat-line"><span>Children travelling</span><b>268</b></div>
+              <div class="stat-line"><span>Parents using the app</span><b>227 · 85%</b></div>
+              <div class="stat-line"><span>Complaints from parents</span><b>1</b></div>
+            </div></div>
+            <div class="card"><div class="ch"><h4>Needs your decision</h4></div>
+              <div class="alertrow"><div class="ai y">1</div><div><div class="al-t">Route 5 has no driver today</div><div class="al-s">Ibrahim Bava on leave · 29 children affected</div></div></div>
+              <div class="alertrow"><div class="ai r">2</div><div><div class="al-t">Fitness certificate expires 22 Aug</div><div class="al-s">KA 19 AC 3345 · bus cannot run after that date</div></div></div>
+              <div class="alertrow"><div class="ai y">3</div><div><div class="al-t">Ismail Sheikh — 6 speed warnings this week</div><div class="al-s">Transport in-charge recommends counselling</div></div></div>
+            </div>
+            <div class="card"><div class="ch"><h4>Safety record</h4><span class="hint">Since 1 June</span></div><div class="cb">
+              <div class="stat-line"><span>Accidents</span><b style="color:var(--live)">0</b></div>
+              <div class="stat-line"><span>SOS raised</span><b>2 · both breakdowns</b></div>
+              <div class="stat-line"><span>Child left on bus</span><b style="color:var(--live)">0</b></div>
+              <div class="stat-line"><span>Average driving score</span><b>86 / 100</b></div>
+              <button class="btn" style="width:100%;margin-top:12px">Download report for the management meeting</button>
+            </div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <p class="note">Principal view is a different route, not a permission-filtered copy of SA-02. Different job, different screen: the clerk acts, the principal decides.</p>
+</section>
+
+</div>
+
+<script>
+const NAV = [
+  ["Every day", [["home","Morning run",""],["live","Live map",""],["board","Boarding log",""],["alerts","Alerts","4"],["msg","Messages",""]]],
+  ["Set up",    [["routes","Routes & stops",""],["kids","Children & parents",""],["staff","Drivers & buses",""]]],
+  ["Office",    [["rep","Reports",""],["set","Settings",""]]]
+];
+document.querySelectorAll('[data-nav]').forEach(el=>{
+  const on = el.dataset.nav;
+  let h = '<div class="chequer"></div><div class="brand"><div class="mark">B</div><div><b>BusMitra</b><small>Sharada Vidyalaya</small></div></div><div class="nav">';
+  NAV.forEach(([grp,items])=>{
+    h += '<div class="grp">'+grp+'</div>';
+    items.forEach(([k,label,badge])=>{
+      h += '<a href="#" class="'+(k===on?'on':'')+'"><i></i>'+label+(badge?'<span class="badge">'+badge+'</span>':'')+'</a>';
+    });
+  });
+  h += '</div>';
+  el.innerHTML = h;
+});
+
+const CITY = `
+<svg viewBox="0 0 760 430" preserveAspectRatio="xMidYMid slice">
+ <rect width="760" height="430" fill="#E6EAF0"/>
+ <path d="M0 300 Q120 280 190 330 T400 400 L400 430 L0 430Z" fill="#CFE0E8"/>
+ <circle cx="620" cy="90" r="70" fill="#DDE8DC"/><circle cx="120" cy="120" r="48" fill="#DDE8DC"/>
+ <g stroke="#fff" fill="none" stroke-linecap="round">
+  <path d="M-10 150 L780 120" stroke-width="17"/><path d="M-10 250 L780 235" stroke-width="13"/>
+  <path d="M90 -10 L140 440" stroke-width="15"/><path d="M330 -10 L360 440" stroke-width="11"/>
+  <path d="M560 -10 L520 440" stroke-width="13"/><path d="M-10 60 L780 40" stroke-width="9"/>
+  <path d="M0 350 L760 330" stroke-width="9"/><path d="M200 60 L700 400" stroke-width="7"/>
+ </g>
+ <g stroke="#16202E" stroke-width="3" fill="none" stroke-dasharray="1 7" stroke-linecap="round" opacity=".55">
+  <path d="M110 40 L130 240 L350 250 L520 300 L560 180"/>
+ </g>
+ <g font-family="IBM Plex Mono, monospace" font-size="10" fill="#7A8BA0">
+  <text x="600" y="88">Kadri</text><text x="96" y="118">Surathkal</text><text x="300" y="380">Netravati</text><text x="430" y="180">Bejai</text><text x="200" y="270">Kottara</text>
+ </g>
+ <g id="buses"></g>
+</svg>`;
+const ROUTE = `
+<svg viewBox="0 0 700 400" preserveAspectRatio="xMidYMid slice">
+ <rect width="700" height="400" fill="#E6EAF0"/>
+ <circle cx="580" cy="300" r="80" fill="#DDE8DC"/><path d="M0 40 Q200 10 340 60 T700 40 L700 0 L0 0Z" fill="#CFE0E8"/>
+ <g stroke="#fff" fill="none" stroke-linecap="round">
+  <path d="M-10 130 L710 110" stroke-width="16"/><path d="M-10 280 L710 300" stroke-width="12"/>
+  <path d="M160 -10 L200 410" stroke-width="14"/><path d="M470 -10 L440 410" stroke-width="10"/>
+ </g>
+ <path d="M60 350 L180 320 L185 135 L360 120 L430 200 L560 195 L640 90" stroke="#16202E" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+ <path d="M60 350 L180 320 L185 135 L360 120" stroke="#1E9E6A" stroke-width="4.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/>
+ <g fill="#fff" stroke="#16202E" stroke-width="3">
+  <circle cx="60" cy="350" r="6"/><circle cx="180" cy="320" r="6"/><circle cx="185" cy="135" r="6"/><circle cx="430" cy="200" r="6"/><circle cx="560" cy="195" r="6"/>
+ </g>
+ <g fill="#1E9E6A" stroke="#1E9E6A"><circle cx="60" cy="350" r="6"/><circle cx="180" cy="320" r="6"/><circle cx="185" cy="135" r="6"/></g>
+ <circle cx="640" cy="90" r="9" fill="#16202E"/><text x="655" y="94" font-family="IBM Plex Mono, monospace" font-size="11" fill="#16202E" font-weight="600">School</text>
+ <g transform="translate(360,120)">
+  <circle r="17" fill="#FFC53D" opacity=".35"/><rect x="-12" y="-12" width="24" height="24" rx="7" fill="#FFC53D" stroke="#16202E" stroke-width="2.5"/>
+  <rect x="-6" y="-6" width="12" height="6" rx="2" fill="#16202E"/>
+ </g>
+ <text x="378" y="112" font-family="IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="#16202E">KA 19 AC 1188 · halted 9 min</text>
+</svg>`;
+const BUS_POS=[[130,240,"R1"],[350,250,"R2"],[520,300,"R3"],[560,180,"R4"],[210,120,"R6"],[640,260,"R7"]];
+document.querySelectorAll('.map').forEach(m=>{
+  if(m.dataset.map==='route'){ m.innerHTML = ROUTE; return; }
+  m.innerHTML = CITY;
+  const g = m.querySelector('#buses');
+  let s='';
+  BUS_POS.forEach(([x,y,r],i)=>{
+    const late = (i===2);
+    s += `<g transform="translate(${x},${y})">
+      <circle r="16" fill="${late?'#D8442F':'#FFC53D'}" opacity=".3"/>
+      <rect x="-11" y="-11" width="22" height="22" rx="6.5" fill="${late?'#D8442F':'#FFC53D'}" stroke="#16202E" stroke-width="2.5"/>
+      <text y="4" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="${late?'#fff':'#16202E'}">${r}</text></g>`;
+  });
+  g.innerHTML = s;
+  m.insertAdjacentHTML('beforeend','<div class="maptools"><span class="mt">All routes</span><span class="mt">Satellite</span><span class="mt">Show stops</span></div><div class="maplegend"><div><i class="sw" style="background:#FFC53D"></i>On time</div><div><i class="sw" style="background:#D8442F"></i>Late or halted</div><div><i class="sw" style="background:#1E9E6A"></i>Completed leg</div></div>');
+});
+</script>
+</body>
+</html>

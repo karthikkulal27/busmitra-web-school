@@ -1,0 +1,83 @@
+@import 'tailwindcss';
+@import 'maplibre-gl/dist/maplibre-gl.css';
+
+/* Design tokens from CLAUDE.md. Nothing here is invented. */
+@theme {
+  --color-ink: #16202e;
+  --color-ink2: #243347;
+  --color-slate: #63748c;
+  --color-line: #dce2ea;
+  --color-paper: #eff1f5;
+  --color-bus: #ffc53d;
+  --color-live: #1e9e6a;
+  --color-alert: #d8442f;
+
+  --font-head: 'Archivo Narrow', system-ui, sans-serif;
+  --font-body: 'Public Sans', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, monospace;
+
+  --radius-card: 12px;
+  --radius-btn: 9px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  font-family: var(--font-body);
+  color: var(--color-ink);
+  background: var(--color-paper);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 6px yellow/ink chequer. Live vehicle contexts only. */
+.chequer {
+  height: 6px;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--color-bus) 0 12px,
+    var(--color-ink) 12px 24px
+  );
+}
+
+/* The bus marker. Kept in plain CSS because MapLibre owns this DOM node. */
+.bus-marker {
+  width: 30px;
+  height: 30px;
+  border-radius: 10px;
+  background: var(--color-bus);
+  border: 3px solid var(--color-ink);
+  box-shadow: 0 6px 16px -6px rgba(22, 32, 46, 0.7);
+  display: grid;
+  place-items: center;
+}
+
+.bus-marker .nose {
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-bottom: 8px solid var(--color-ink);
+  transition: transform 220ms linear;
+}
+
+/* Explicitly sized, not inset-based. MapLibre owns the marker element and puts
+   its own positioning on it; an `inset: -13px` circle inside that resolves
+   against a containing block the width of the map and paints a full-width
+   ellipse across the city. */
+.bus-halo {
+  position: absolute;
+  width: 56px;
+  height: 56px;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--color-bus);
+  opacity: 0.3;
+  pointer-events: none;
+}
