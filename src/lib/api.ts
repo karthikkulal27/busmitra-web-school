@@ -20,6 +20,7 @@ import type {
   SentMessage,
   Session,
   TripDetail,
+  SchoolTicket,
   Track,
 } from './types';
 
@@ -158,6 +159,9 @@ export const api = {
       method: 'PATCH',
       body: JSON.stringify({ active }),
     }),
+
+  /** Our own tickets, with whatever BusMitra replied. */
+  myTickets: () => request<{ tickets: SchoolTicket[] }>('/console/tickets'),
 
   /** Raise a ticket with BusMitra. Lands in the operator's inbox. */
   raiseTicket: (input: Record<string, unknown>) =>

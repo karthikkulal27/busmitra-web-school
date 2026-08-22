@@ -15,6 +15,7 @@ const NAV = [
   { to: '/reports', label: 'Reports', end: false },
   { to: '/staff', label: 'Drivers & staff', end: false },
   { to: '/settings', label: 'Settings', end: false },
+  { to: '/help', label: 'Get help', end: false },
 ];
 
 export function Shell(): React.ReactElement {

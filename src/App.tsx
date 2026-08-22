@@ -6,6 +6,7 @@ import { Alerts } from './screens/Alerts';
 import { Boarding } from './screens/Boarding';
 import { Buses } from './screens/Buses';
 import { Children } from './screens/Children';
+import { Help } from './screens/Help';
 import { Home } from './screens/Home';
 import { Live } from './screens/Live';
 import { Messages } from './screens/Messages';
@@ -53,6 +54,7 @@ export default function App(): React.ReactElement {
               <Route path="/reports" element={<Reports />} />
               <Route path="/staff" element={<Staff />} />
               <Route path="/settings" element={<Settings />} />
+              <Route path="/help" element={<Help />} />
               <Route path="/trips/:tripId" element={<TripDetail />} />
             </Route>
             {/* SA-13 sits outside the shell: it is one screen with no nav,

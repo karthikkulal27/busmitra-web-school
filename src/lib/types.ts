@@ -352,3 +352,16 @@ export interface HolidayRow {
   buses_running: boolean;
   past: boolean;
 }
+
+/** A ticket as the school that raised it sees it. */
+export interface SchoolTicket {
+  id: string;
+  number: number;
+  subject: string;
+  body: string;
+  priority: 'urgent' | 'normal';
+  status: string;
+  created_at: string;
+  child_name: string | null;
+  replies: { author: string; body: string; at: string }[];
+}
