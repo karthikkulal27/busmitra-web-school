@@ -19,6 +19,7 @@ export function RoutesScreen(): React.ReactElement {
   const [draft, setDraft] = useState<EditorStop | null>(null);
   const [dragFrom, setDragFrom] = useState<number | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const [newRoute, setNewRoute] = useState(false);
 
   const { data, isLoading } = useQuery({ queryKey: ['setup-routes'], queryFn: () => api.setupRoutes() });
 
@@ -38,6 +39,19 @@ export function RoutesScreen(): React.ReactElement {
   const refresh = (): void => {
     void queryClient.invalidateQueries({ queryKey: ['setup-routes'] });
   };
+
+  const createRoute = useMutation({
+    mutationFn: (input: { name: string; shift: string; busId: string | null }) =>
+      api.createRoute(input),
+    onSuccess: (res) => {
+      setRouteId(res.routeId);
+      setStopId(null);
+      setNewRoute(false);
+      setNote('Route created. Add its stops below.');
+      refresh();
+    },
+    onError: () => setNote('Could not create the route.'),
+  });
 
   const saveStop = useMutation({
     mutationFn: (s: EditorStop) => api.saveStop(route!.id, s),
@@ -82,7 +96,27 @@ export function RoutesScreen(): React.ReactElement {
   }
 
   if (isLoading) return <Empty>Loading…</Empty>;
-  if (!route) return <Empty>No routes yet.</Empty>;
+
+  // A school with no routes yet — every other school got theirs from the seed,
+  // which is why this screen went so long with no way to make the first one.
+  if (!route) {
+    return (
+      <div className="flex flex-col gap-4 p-5">
+        <div>
+          <h3 className="font-head text-[22px] font-bold">Routes</h3>
+          <div className="text-[12.5px] text-slate">Nothing drawn yet</div>
+        </div>
+        {note ? (
+          <p className="rounded-[9px] border border-line bg-white px-3 py-2 text-[12.5px]">{note}</p>
+        ) : null}
+        <NewRouteForm
+          pending={createRoute.isPending}
+          onCreate={(input) => createRoute.mutate(input)}
+          onCancel={null}
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col gap-4 p-5">
@@ -115,7 +149,21 @@ export function RoutesScreen(): React.ReactElement {
             <span className="pl-2 font-mono text-[11px] opacity-70">{r.stops.length}</span>
           </button>
         ))}
+        <button
+          onClick={() => setNewRoute((v) => !v)}
+          className="rounded-[9px] border border-dashed border-line px-3 py-2 text-[13px] font-semibold text-slate hover:text-ink"
+        >
+          + New route
+        </button>
       </div>
+
+      {newRoute ? (
+        <NewRouteForm
+          pending={createRoute.isPending}
+          onCreate={(input) => createRoute.mutate(input)}
+          onCancel={() => setNewRoute(false)}
+        />
+      ) : null}
 
       <RouteBus route={route} />
 
@@ -331,5 +379,89 @@ function RouteBus({ route }: { route: EditorRoute }): React.ReactElement {
         </p>
       </div>
     </Card>
+  );
+}
+
+/**
+ * The first thing a new school needs on this screen.
+ *
+ * A route is two decisions — what it is called and which half of the day it
+ * runs — plus the bus, which is deliberately optional here. Schools draw routes
+ * in June and decide vehicles in July, and forcing the vehicle now would mean
+ * inventing one. The picker on the route itself is where that gets settled.
+ */
+function NewRouteForm({
+  pending,
+  onCreate,
+  onCancel,
+}: {
+  pending: boolean;
+  onCreate: (input: { name: string; shift: string; busId: string | null }) => void;
+  onCancel: (() => void) | null;
+}): React.ReactElement {
+  const [name, setName] = useState('');
+  const [shift, setShift] = useState('morning');
+
+  return (
+    <Card title="New route">
+      <form
+        className="grid gap-3 p-4 sm:grid-cols-[minmax(0,2fr)_minmax(0,1fr)_auto]"
+        onSubmit={(e) => {
+          e.preventDefault();
+          onCreate({ name: name.trim(), shift, busId: null });
+        }}
+      >
+        <label className="block">
+          <Lbl>Route name</Lbl>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="R1 Kadri – School"
+            className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+          />
+        </label>
+        <label className="block">
+          <Lbl>Shift</Lbl>
+          <select
+            value={shift}
+            onChange={(e) => setShift(e.target.value)}
+            className="w-full rounded-[9px] border border-line px-3 py-2 text-[14px]"
+          >
+            <option value="morning">Morning</option>
+            <option value="afternoon">Afternoon</option>
+          </select>
+        </label>
+        <div className="flex items-end gap-3 pb-0.5">
+          <button
+            type="submit"
+            disabled={name.trim().length < 2 || pending}
+            className="rounded-[9px] bg-ink px-4 py-2.5 text-[14px] font-bold text-white disabled:opacity-60"
+          >
+            {pending ? 'Creating…' : 'Create route'}
+          </button>
+          {onCancel ? (
+            <button
+              type="button"
+              onClick={onCancel}
+              className="text-[12.5px] font-semibold text-slate hover:text-ink"
+            >
+              Cancel
+            </button>
+          ) : null}
+        </div>
+        <p className="text-[12px] text-slate sm:col-span-3">
+          The bus comes later — pick it on the route once it exists. Stops are added
+          on the map below.
+        </p>
+      </form>
+    </Card>
+  );
+}
+
+function Lbl({ children }: { children: React.ReactNode }): React.ReactElement {
+  return (
+    <span className="mb-1.5 block font-head text-[10px] font-bold tracking-[0.13em] text-slate uppercase">
+      {children}
+    </span>
   );
 }

@@ -134,6 +134,16 @@ export const api = {
 
   setupRoutes: () => request<{ routes: EditorRoute[] }>('/setup/routes'),
 
+  /**
+   * SA-05. The endpoint has always existed; the screen had no way to call it,
+   * so a school whose routes did not come from the seed could not make one.
+   */
+  createRoute: (input: { name: string; shift: string; busId: string | null }) =>
+    request<{ routeId: string }>('/setup/routes', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+
   // SA-08 — the fleet list. Distinct from `buses` above, which is the live map's
   // view of what is moving right now; this one is the vehicle records.
   fleet: () => request<{ buses: FleetBus[] }>('/setup/buses'),
