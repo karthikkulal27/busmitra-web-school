@@ -24,6 +24,7 @@ export function RoutesScreen(): React.ReactElement {
   const [flyTo, setFlyTo] = useState<{ lat: number; lng: number; at: number } | null>(null);
 
   const { data, isLoading } = useQuery({ queryKey: ['setup-routes'], queryFn: () => api.setupRoutes() });
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.settings() });
 
   const routes = data?.routes ?? [];
   const route = routes.find((r) => r.id === routeId) ?? routes[0] ?? null;
@@ -209,8 +210,14 @@ export function RoutesScreen(): React.ReactElement {
                   id: '',
                   name: '',
                   seq: stops.length + 1,
-                  lat: 12.914,
-                  lng: 74.842,
+                  // A new stop starts next to the last one, because that is
+                  // where the next stop on a route almost always is. Before
+                  // there is a last one, the school. Only then Mangalore, and
+                  // only because something has to be there.
+                  //
+                  // It was Mangalore unconditionally, which put an unsaved
+                  // "stop 3" 350 km off the coast on every Bengaluru route.
+                  ...nextStopPosition(stops, settings?.school),
                   geofenceM: 80,
                   waitSeconds: 60,
                   scheduledTime: null,
@@ -473,4 +480,21 @@ function Lbl({ children }: { children: React.ReactNode }): React.ReactElement {
       {children}
     </span>
   );
+}
+
+/**
+ * Where a newly added stop should start.
+ *
+ * Stops on a route are near each other, so the last one is the best guess by a
+ * wide margin — it puts the pin on screen, and the clerk drags or searches from
+ * there rather than hunting for the right town first.
+ */
+function nextStopPosition(
+  stops: EditorStop[],
+  school: { lat: number | null; lng: number | null } | undefined,
+): { lat: number; lng: number } {
+  const last = stops[stops.length - 1];
+  if (last) return { lat: last.lat, lng: last.lng };
+  if (school?.lat != null && school.lng != null) return { lat: school.lat, lng: school.lng };
+  return { lat: 12.914, lng: 74.842 };
 }
