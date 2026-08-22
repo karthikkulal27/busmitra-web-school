@@ -107,6 +107,8 @@ export const api = {
   children: () =>
     request<{
       children: ChildRow[];
+      /** Travels with the children: the screen that lists them assigns them. */
+      stops: { id: string; name: string; routeName: string }[];
       counts: { total: number; noParentPhone: number; noStop: number };
     }>('/setup/children'),
 
@@ -134,6 +136,35 @@ export const api = {
   // SA-08 — the fleet list. Distinct from `buses` above, which is the live map's
   // view of what is moving right now; this one is the vehicle records.
   fleet: () => request<{ buses: FleetBus[] }>('/setup/buses'),
+
+  // SA-06. The importer is for four hundred children in an afternoon; these two
+  // are for the admission that arrives in October and the family that moves in
+  // November. A school that has to re-import a spreadsheet for one child keeps
+  // the spreadsheet as the real record.
+  createChild: (input: Record<string, unknown>) =>
+    request<{ childId: string }>('/setup/children', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
+  updateChild: (id: string, input: Record<string, unknown>) =>
+    request<{ ok: boolean }>(`/setup/children/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(input),
+    }),
+
+  /** SA-07. Someone leaves, or comes back. Never deleted. */
+  setStaffActive: (id: string, active: boolean) =>
+    request<{ ok: boolean }>(`/admin/staff/${id}/active`, {
+      method: 'PATCH',
+      body: JSON.stringify({ active }),
+    }),
+
+  /** Raise a ticket with BusMitra. Lands in the operator's inbox. */
+  raiseTicket: (input: Record<string, unknown>) =>
+    request<{ ticketId: string; number: number }>('/console/tickets', {
+      method: 'POST',
+      body: JSON.stringify(input),
+    }),
 
   /** SA-05 — which bus runs this route. Half of what the driver app's duty needs. */
   updateRoute: (id: string, input: Record<string, unknown>) =>

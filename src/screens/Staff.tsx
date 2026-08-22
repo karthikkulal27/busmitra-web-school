@@ -20,6 +20,17 @@ export function Staff(): React.ReactElement {
     refetchInterval: 60_000,
   });
 
+  const retire = useMutation({
+    mutationFn: ({ id, active }: { id: string; active: boolean }) =>
+      api.setStaffActive(id, active),
+    onSuccess: () => {
+      void queryClient.invalidateQueries({ queryKey: ['staff'] });
+      // The bus is released when a driver is retired, so the fleet
+      // list is stale the moment this succeeds.
+      void queryClient.invalidateQueries({ queryKey: ['fleet'] });
+    },
+  });
+
   const save = useMutation({
     mutationFn: (input: Record<string, unknown>) => api.saveStaff(input),
     onSuccess: () => {
@@ -144,6 +155,7 @@ export function Staff(): React.ReactElement {
                   <Th>Police verification</Th>
                   <Th>Score</Th>
                   <Th>Now</Th>
+                  <Th> </Th>
                 </tr>
               </thead>
               <tbody>
@@ -198,6 +210,16 @@ export function Staff(): React.ReactElement {
                       ) : (
                         <span className="text-slate">—</span>
                       )}
+                    </td>
+                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      {/* Retired, never deleted: this person's name is on every
+                          boarding they marked and every pre-trip check they signed. */}
+                      <button
+                        onClick={() => retire.mutate({ id: s.id, active: false })}
+                        className="text-[12.5px] font-semibold text-slate hover:text-alert"
+                      >
+                        Retire
+                      </button>
                     </td>
                   </tr>
                 ))}

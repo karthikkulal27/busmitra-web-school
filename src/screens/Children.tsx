@@ -1,5 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRef, useState } from 'react';
+import { ChildForm } from './ChildForm';
+import type { ChildDraft } from './ChildForm';
 import { RequestsPanel } from '../components/RequestsPanel';
 import { Card, Empty, Kpi } from '../components/ui';
 import { api } from '../lib/api';
@@ -20,6 +22,10 @@ export function Children(): React.ReactElement {
   const [overrides, setOverrides] = useState<Record<number, string>>({});
   const [error, setError] = useState<string | null>(null);
   const [done, setDone] = useState<string | null>(null);
+  // Manual entry, alongside the importer. The spreadsheet is for onboarding;
+  // this is for the admission that arrives in October.
+  const [editing, setEditing] = useState<ChildDraft | null>(null);
+  const [addingChild, setAddingChild] = useState(false);
 
   const { data } = useQuery({ queryKey: ['children'], queryFn: () => api.children() });
 
@@ -82,6 +88,16 @@ export function Children(): React.ReactElement {
             }}
           />
           <button
+            onClick={() => {
+              setEditing(null);
+              setAddingChild(true);
+              setDone(null);
+            }}
+            className="mr-2 rounded-[9px] border border-line bg-white px-3.5 py-2 text-[13px] font-bold text-ink"
+          >
+            Add a child
+          </button>
+          <button
             onClick={() => fileRef.current?.click()}
             disabled={upload.isPending}
             className="rounded-[9px] bg-ink px-3.5 py-2 text-[13px] font-bold text-white disabled:opacity-60"
@@ -117,6 +133,22 @@ export function Children(): React.ReactElement {
           tone={(data?.counts.noStop ?? 0) > 0 ? 'alert' : undefined}
         />
       </div>
+
+      {addingChild || editing ? (
+        <ChildForm
+          child={editing}
+          stops={data?.stops ?? []}
+          onDone={(m) => {
+            setDone(m);
+            setAddingChild(false);
+            setEditing(null);
+          }}
+          onCancel={() => {
+            setAddingChild(false);
+            setEditing(null);
+          }}
+        />
+      ) : null}
 
       {preview ? (
         <Card
@@ -220,6 +252,7 @@ export function Children(): React.ReactElement {
                   <Th>Class</Th>
                   <Th>Route &amp; stop</Th>
                   <Th>Parent</Th>
+                  <Th> </Th>
                 </tr>
               </thead>
               <tbody>
@@ -257,6 +290,26 @@ export function Children(): React.ReactElement {
                           No number
                         </span>
                       )}
+                    </td>
+                    <td className="px-4 py-2.5 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => {
+                          setAddingChild(false);
+                          setDone(null);
+                          setEditing({
+                            id: c.id,
+                            name: c.name,
+                            admissionNo: c.admissionNo ?? null,
+                            className: c.className ?? null,
+                            stopId: c.stopId ?? null,
+                            parentName: c.parentName ?? null,
+                            parentPhone: c.parentPhone ?? null,
+                          });
+                        }}
+                        className="text-[12.5px] font-semibold text-slate hover:text-ink"
+                      >
+                        Edit
+                      </button>
                     </td>
                   </tr>
                 ))}

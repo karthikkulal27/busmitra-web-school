@@ -162,6 +162,7 @@ export interface ChildRow {
   admissionNo: string | null;
   className: string | null;
   routeName: string | null;
+  stopId: string | null;
   stopName: string | null;
   parentName: string | null;
   parentPhone: string | null;
