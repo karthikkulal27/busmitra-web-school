@@ -134,6 +134,13 @@ export const api = {
 
   setupRoutes: () => request<{ routes: EditorRoute[] }>('/setup/routes'),
 
+  /** Find a place by name, so a stop is not placed by panning and guessing. */
+  geocode: (q: string) =>
+    request<{
+      places: { name: string; lat: number; lng: number }[];
+      unavailable?: boolean;
+    }>(`/setup/geocode?q=${encodeURIComponent(q)}`),
+
   /**
    * SA-05. The endpoint has always existed; the screen had no way to call it,
    * so a school whose routes did not come from the seed could not make one.

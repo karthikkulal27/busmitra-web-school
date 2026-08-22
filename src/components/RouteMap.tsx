@@ -19,6 +19,11 @@ export interface RouteMapProps {
   selectedStopId: string | null;
   /** Clicking the map moves the selected stop. Set-up work, done once in June. */
   onPick: (lat: number, lng: number) => void;
+  /**
+   * Where the search box last landed. Flying there rather than re-centring on
+   * every render keeps the clerk's own panning from being yanked away.
+   */
+  flyTo?: { lat: number; lng: number; at: number } | null;
 }
 
 /**
@@ -29,13 +34,23 @@ export interface RouteMapProps {
  * think — a 50 m default false-fires on Surathkal service roads — so it has to
  * be visible on the map while you edit it, not just a number in a box.
  */
-export function RouteMap({ stops, selectedStopId, onPick }: RouteMapProps): React.ReactElement {
+export function RouteMap({
+  stops,
+  selectedStopId,
+  onPick,
+  flyTo,
+}: RouteMapProps): React.ReactElement {
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilesBroken, setTilesBroken] = useState(false);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const onPickRef = useRef(onPick);
   onPickRef.current = onPick;
   const fittedRef = useRef(false);
+
+  useEffect(() => {
+    if (!flyTo || !mapRef.current) return;
+    mapRef.current.flyTo({ center: [flyTo.lng, flyTo.lat], zoom: 15, duration: 900 });
+  }, [flyTo]);
 
   useEffect(() => {
     if (!containerRef.current) return;
