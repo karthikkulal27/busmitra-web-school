@@ -112,6 +112,24 @@ export function FleetMap({
   const centreRef = useRef<[number, number]>(centre);
   centreRef.current = centre;
 
+  // The map is constructed once, on mount, and the settings query has not
+  // resolved by then — so reading the centre at construction gets the Mangalore
+  // fallback every time and the ref update never reaches the map. The position
+  // has to be applied when it arrives.
+  //
+  // Depending on the two numbers rather than the tuple, because the tuple is a
+  // new array every render and would re-centre the map continuously, fighting
+  // the clerk for control of it.
+  const schoolLat = settings?.school.lat ?? null;
+  const schoolLng = settings?.school.lng ?? null;
+  useEffect(() => {
+    // Not once a real bus position has placed the view — a moving bus is what
+    // this map is for, and the school centre must not pull away from it.
+    if (!mapRef.current || placedRef.current) return;
+    if (schoolLat == null || schoolLng == null) return;
+    mapRef.current.jumpTo({ center: [schoolLng, schoolLat], zoom: 13 });
+  }, [schoolLat, schoolLng]);
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilesBroken, setTilesBroken] = useState(false);
   const mapRef = useRef<maplibregl.Map | null>(null);
