@@ -5,7 +5,11 @@ import { api } from '../lib/api';
 import type { FleetBus } from '../lib/types';
 
 /**
- * SA-08 — buses.
+ * SA-14 — buses.
+ *
+ * A new screen, outside the SA-01..SA-13 prototype set — there was no mock for
+ * it, because the original plan had the operator adding vehicles. It first
+ * carried SA-08, which is the boarding log's number.
  *
  * The school owns its fleet. Schools buy and retire vehicles on their own
  * timetable, and routing every plate change through BusMitra would make us a
