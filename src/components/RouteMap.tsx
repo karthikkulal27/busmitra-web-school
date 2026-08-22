@@ -2,7 +2,9 @@ import maplibregl from 'maplibre-gl';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { Protocol } from 'pmtiles';
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MANGALORE } from '../config';
+import { api } from '../lib/api';
 import { buildMapStyle, styleHasVectorLayers } from '../lib/mapStyle';
 import { MapUnavailable } from './MapUnavailable';
 import type { EditorStop } from '../lib/types';
@@ -40,6 +42,16 @@ export function RouteMap({
   onPick,
   flyTo,
 }: RouteMapProps): React.ReactElement {
+  // Opening over the school rather than a hardcoded Mangalore centre. A clerk
+  // placing stops on the Hennur road should not start 350 km out to sea.
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.settings() });
+  const centre: [number, number] =
+    settings?.school.lat != null && settings.school.lng != null
+      ? [settings.school.lng, settings.school.lat]
+      : MANGALORE;
+  const centreRef = useRef<[number, number]>(centre);
+  centreRef.current = centre;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilesBroken, setTilesBroken] = useState(false);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -60,7 +72,7 @@ export function RouteMap({
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: buildMapStyle(),
-      center: MANGALORE,
+      center: centreRef.current,
       zoom: 11,
       attributionControl: { compact: true },
     });

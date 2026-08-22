@@ -282,7 +282,15 @@ export interface StaffView {
 }
 
 export interface SettingsView {
-  school: { name: string; code: string; city: string; timezone: string };
+  school: {
+    name: string;
+    code: string;
+    city: string;
+    timezone: string;
+    /** Centres every map. Null falls back to Mangalore. */
+    lat: number | null;
+    lng: number | null;
+  };
   timings: { assemblyTime: string | null; closingTime: string | null; busesLeaveBy: string | null };
   contacts: { officePhone: string | null; transportPhone: string | null };
   alerts: {

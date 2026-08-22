@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Card, Empty } from '../components/ui';
+import { PlaceSearch, shortPlace } from '../components/PlaceSearch';
 import { api } from '../lib/api';
 import { useSession } from '../lib/session';
 
@@ -39,6 +40,8 @@ export function Settings(): React.ReactElement {
       tripLateAfterMinutes: String(data.alerts.tripLateAfterMinutes),
       officePhone: data.contacts.officePhone ?? '',
       transportPhone: data.contacts.transportPhone ?? '',
+      lat: data.school.lat == null ? '' : String(data.school.lat),
+      lng: data.school.lng == null ? '' : String(data.school.lng),
     });
   }, [data]);
 
@@ -55,6 +58,11 @@ export function Settings(): React.ReactElement {
         tripLateAfterMinutes: Number(form['tripLateAfterMinutes']),
         officePhone: form['officePhone'] || undefined,
         transportPhone: form['transportPhone'] || undefined,
+        // Sent together or not at all — half a coordinate is not half a
+        // location, and the server treats "absent" as "leave it alone".
+        ...(form['lat'] && form['lng']
+          ? { lat: Number(form['lat']), lng: Number(form['lng']) }
+          : {}),
       }),
     onSuccess: () => {
       setNote('Saved. Alert thresholds apply to the next position that arrives.');
@@ -129,6 +137,38 @@ export function Settings(): React.ReactElement {
                 disabled={readOnly}
               />
             </Field>
+          </div>
+        </Card>
+
+        <Card title="Where the school is">
+          <div className="grid gap-3 p-4">
+            <p className="text-[12.5px] leading-relaxed text-slate">
+              This centres every map — the live fleet, and the one you place stops
+              on. Without it they open over Mangalore, which is a long way to pan
+              if your buses run in Bengaluru.
+            </p>
+
+            {readOnly ? null : (
+              <PlaceSearch
+                onPick={(place) => {
+                  setForm((f) => ({
+                    ...f,
+                    lat: String(place.lat),
+                    lng: String(place.lng),
+                  }));
+                  setNote('Position set — save to keep it. ' + shortPlace(place.name));
+                }}
+              />
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Field label="Latitude">
+                <Input value={form['lat'] ?? ''} onChange={set('lat')} mono disabled={readOnly} />
+              </Field>
+              <Field label="Longitude">
+                <Input value={form['lng'] ?? ''} onChange={set('lng')} mono disabled={readOnly} />
+              </Field>
+            </div>
           </div>
         </Card>
 

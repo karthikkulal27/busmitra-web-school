@@ -2,7 +2,9 @@ import maplibregl from 'maplibre-gl';
 import type { Feature, FeatureCollection, Geometry } from 'geojson';
 import { Protocol } from 'pmtiles';
 import { useEffect, useRef, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { MANGALORE } from '../config';
+import { api } from '../lib/api';
 import { buildMapStyle, styleHasVectorLayers } from '../lib/mapStyle';
 import { MapUnavailable } from './MapUnavailable';
 import { useFleet } from '../lib/fleet';
@@ -100,6 +102,16 @@ export function FleetMap({
   onBusClick,
   onlyTripId,
 }: FleetMapProps): React.ReactElement {
+  // The school, not a hardcoded Mangalore centre — this map is looked at every
+  // morning, and it should already be showing the right town.
+  const { data: settings } = useQuery({ queryKey: ['settings'], queryFn: () => api.settings() });
+  const centre: [number, number] =
+    settings?.school.lat != null && settings.school.lng != null
+      ? [settings.school.lng, settings.school.lat]
+      : MANGALORE;
+  const centreRef = useRef<[number, number]>(centre);
+  centreRef.current = centre;
+
   const containerRef = useRef<HTMLDivElement>(null);
   const [tilesBroken, setTilesBroken] = useState(false);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -119,7 +131,7 @@ export function FleetMap({
     const map = new maplibregl.Map({
       container: containerRef.current,
       style: buildMapStyle(),
-      center: MANGALORE,
+      center: centreRef.current,
       zoom: 11.5,
       attributionControl: { compact: true },
     });
